@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Полезное — LeGrot. Справочники и материалы, к которым хочется вернуться.">
+    <title>Полезное — LeGrot</title>
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../assets/css/section.css">
+</head>
+<body data-section="useful">
+    <header class="header">
+        <div class="container header__inner">
+            <div class="header__left">
+                <a href="../index.html" class="logo" aria-label="LeGrot — на главную">
+                    <span class="logo__mark">L</span>
+                    <span class="logo__text">LeGrot</span>
+                </a>
+                <span class="header__divider" aria-hidden="true"></span>
+                <span class="header__section">
+                    <span class="header__section-icon" aria-hidden="true">📚</span>
+                    <span class="header__section-title">Полезное</span>
+                </span>
+            </div>
+
+            <div class="header__tools">
+                <a href="../index.html" class="back-link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>На главную</span>
+                </a>
+                <button type="button" class="theme-toggle" id="themeToggle" aria-label="Переключить тему">
+                    <svg class="theme-toggle__icon theme-toggle__icon--sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+                    </svg>
+                    <svg class="theme-toggle__icon theme-toggle__icon--moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="page">
+            <div class="container">
+                <div class="page__head">
+                    <span class="page__icon" aria-hidden="true">📚</span>
+                    <div class="page__meta">
+                        <span class="page__eyebrow">Раздел</span>
+                        <h1 class="page__title">Полезное</h1>
+                        <p class="page__text">Справочники и материалы, к которым хочется вернуться — шпаргалки, таблицы, заметки.</p>
+                    </div>
+                </div>
+
+                <div class="section-subhead">
+                    <h2 class="section-subhead__title">Все материалы</h2>
+                    <span class="section-subhead__count" data-count>0</span>
+                </div>
+
+                <div class="grid" data-items>
+                    <div class="empty">
+                        <span class="empty__icon" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"></circle>
+                                <path d="M12 7v5l3 2"></path>
+                            </svg>
+                        </span>
+                        <p class="empty__title">Скоро появится</p>
+                        <p class="empty__text"><span class="empty__pulse" aria-hidden="true"></span>Первые материалы уже готовятся. Заглядывайте позже.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer__inner">
+            <p class="footer__copy">© <span id="year"></span> LeGrot · Полезное</p>
+            <a href="../index.html" class="footer__link">На главную</a>
+        </div>
+    </footer>
+
+    <script src="../assets/js/section.js"></script>
+</body>
+</html>

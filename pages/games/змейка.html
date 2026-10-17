@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Змейка</title>
+<style>
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --surface-2: #f4f5f7;
+    --line:      #e4e6ea;
+    --line-2:    #d6d9df;
+    --text:      #1a1d21;
+    --text-2:    #6b7280;
+    --text-3:    #9ca3af;
+    --accent:    #4f7cff;
+    --accent-2:  #3b66e0;
+    --green:     #22c55e;
+    --gold:      #f5a524;
+    --danger:    #ef4444;
+    --radius:    16px;
+    --radius-sm: 12px;
+    --shadow-sm: 0 1px 2px rgba(16,24,40,.05);
+    --shadow:    0 4px 14px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.04);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+  #app { position: relative; width: 100%; height: 100%; }
+
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+  /* ============ Side panels ============ */
+  #sideLeft, #sideRight {
+    position: absolute; top: 0; bottom: 0;
+    width: 240px;
+    padding: 22px 18px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 3;
+    pointer-events: none;
+  }
+  #sideLeft { left: 0; align-items: flex-start; }
+  #sideRight { right: 0; align-items: flex-end; }
+
+  .side-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 16px 14px;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+  }
+  .side-card .label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-3);
+    margin-bottom: 6px;
+  }
+  .side-card .value {
+    font-size: 22px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .side-card .value.small { font-size: 16px; }
+  .side-card .value.gold { color: var(--gold); }
+  .side-card .hint-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-2); padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .side-card .hint-row:last-child { border-bottom: none; }
+  .side-card .hint-row b { color: var(--text); font-weight: 600; }
+
+  .key {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 6px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 6px; font-size: 11.5px; font-weight: 700; color: var(--text);
+  }
+  .keys { display: inline-flex; gap: 3px; }
+
+  /* ============ HUD ============ */
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: max(14px, env(safe-area-inset-top)) 16px 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 5;
+  }
+  .hud-left { display: flex; gap: 8px; }
+  .chip {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 14px;
+    font-size: 14px; font-weight: 600; color: var(--text);
+    display: inline-flex; align-items: center; gap: 7px;
+    box-shadow: var(--shadow-sm);
+    min-width: 62px; justify-content: center;
+  }
+  .chip .icon { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .chip.coins .icon { background: var(--gold); }
+  #pauseBtn {
+    pointer-events: auto; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--line);
+    color: var(--text); width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s ease, background .15s ease;
+  }
+  #pauseBtn:hover { background: var(--surface-2); }
+  #pauseBtn:active { transform: scale(.93); }
+  #pauseBtn svg { width: 16px; height: 16px; }
+
+  /* ============ Overlays ============ */
+  .overlay {
+    position: absolute; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+    pointer-events: auto;
+    animation: fade .18s ease;
+  }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .overlay.hidden { display: none; }
+
+  .brand {
+    font-size: 13px; font-weight: 600; letter-spacing: .16em;
+    color: var(--text-3); text-transform: uppercase;
+    margin: 0 0 14px;
+  }
+  .title {
+    font-size: clamp(40px, 9vw, 60px); font-weight: 800;
+    letter-spacing: -0.035em; margin: 0 0 10px; color: var(--text);
+    line-height: 1;
+  }
+  .subtitle { color: var(--text-2); margin: 0 0 32px; font-size: 15px; }
+
+  .menu { display: flex; flex-direction: column; gap: 10px; width: min(380px, 100%); position: relative; z-index: 1; }
+  .btn {
+    cursor: pointer; border: 1px solid var(--line);
+    background: var(--surface); color: var(--text);
+    padding: 15px 20px; border-radius: var(--radius);
+    font-size: 15.5px; font-weight: 600; font-family: inherit;
+    transition: transform .12s ease, background .15s ease, border-color .15s ease;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: var(--shadow-sm);
+    pointer-events: auto;
+    user-select: none;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--line-2); }
+  .btn:active { transform: scale(.98); }
+  .btn.primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+  .btn.ghost { background: transparent; box-shadow: none; border-color: transparent; color: var(--text-2); }
+  .btn.ghost:hover { background: var(--surface-2); color: var(--text); }
+  .row { display: flex; gap: 10px; width: min(380px, 100%); }
+  .row .btn { flex: 1; }
+  .hint { color: var(--text-3); font-size: 13px; margin-top: 26px; line-height: 1.6; }
+
+  /* ============ Panels ============ */
+  .panel-head {
+    width: min(820px, 100%);
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 22px; gap: 12px;
+  }
+  .panel-head h2 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .panel-head .balance {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--line);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 14px; font-weight: 700; color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+  .coin-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--gold); display: inline-block; }
+
+  .grid {
+    width: min(820px, 100%);
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px; text-align: left;
+    max-height: 62vh; overflow-y: auto; padding: 4px;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    cursor: pointer; position: relative;
+    box-shadow: var(--shadow-sm);
+    pointer-events: auto;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--line-2); box-shadow: var(--shadow); }
+  .card.equipped { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,124,255,.12); }
+
+  .preview {
+    height: 76px;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .preview svg { display: block; }
+
+  .card .name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .card .meta { font-size: 12.5px; color: var(--text-3); line-height: 1.4; min-height: 17px; }
+  .card .footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: auto; gap: 8px;
+  }
+  .card .price {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .card .price .coin-dot { width: 12px; height: 12px; }
+  .card .price.free { color: var(--green); font-weight: 700; }
+  .card .badge {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    background: rgba(34,197,94,.12); color: #15803d;
+  }
+  .card .badge.eq { background: rgba(79,124,255,.12); color: var(--accent-2); }
+  .card .badge.lock { background: rgba(0,0,0,.05); color: var(--text-3); }
+
+  .panel-actions { width: min(820px, 100%); display: flex; gap: 10px; margin-top: 24px; }
+  .panel-actions .btn { flex: 1; }
+
+  /* ============ Game over ============ */
+  .stats { display: flex; gap: 12px; margin: 8px 0 28px; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px 26px; min-width: 110px;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat b { display: block; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+  .stat span { font-size: 11.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
+  .stat.gold b { color: var(--gold); }
+
+  /* ============ Touch ============ */
+  #touchControls { position: absolute; inset: 0; z-index: 4; display: none; pointer-events: none; }
+  .dpad {
+    position: absolute; bottom: max(24px, env(safe-area-inset-bottom));
+    left: 50%; transform: translateX(-50%);
+    display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px);
+    gap: 8px; pointer-events: auto;
+  }
+  .dbtn {
+    background: rgba(255,255,255,.9);
+    border: 1px solid var(--line);
+    color: var(--text); border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    cursor: pointer; user-select: none;
+    box-shadow: var(--shadow);
+    transition: transform .1s ease, background .1s ease;
+  }
+  .dbtn svg { width: 20px; height: 20px; }
+  .dbtn:active { transform: scale(.92); background: var(--accent); color: #fff; border-color: var(--accent); }
+  .dbtn.up { grid-column: 2; grid-row: 1; }
+  .dbtn.left { grid-column: 1; grid-row: 2; }
+  .dbtn.down { grid-column: 2; grid-row: 3; }
+  .dbtn.right { grid-column: 3; grid-row: 2; }
+  .dbtn.center { grid-column: 2; grid-row: 2; background: transparent; border-color: transparent; box-shadow: none; pointer-events: none; }
+
+  @media (hover: hover) and (pointer: fine) {
+    #touchControls { display: none !important; }
+  }
+  @media (min-width: 1000px) and (hover: hover) and (pointer: fine) {
+    #sideLeft, #sideRight { display: flex; }
+  }
+  @media (hover: none) and (pointer: coarse) {
+    #touchControls { display: block; }
+  }
+  @media (max-width: 520px) {
+    .dpad { grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(3, 56px); }
+    .chip { padding: 7px 12px; font-size: 13px; }
+    .stat { padding: 14px 20px; min-width: 96px; }
+    .stat b { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <aside id="sideLeft">
+    <div class="side-card">
+      <div class="label">Уровень</div>
+      <div class="value" id="sideLevel">Классика</div>
+    </div>
+    <div class="side-card">
+      <div class="label">Скорость</div>
+      <div class="value small" id="sideSpeed">165 мс / шаг</div>
+    </div>
+    <div class="side-card">
+      <div class="label">Рекорд уровня</div>
+      <div class="value" id="sideBest">0</div>
+    </div>
+  </aside>
+
+  <aside id="sideRight">
+    <div class="side-card">
+      <div class="label">Управление</div>
+      <div class="hint-row"><span>Движение</span><span class="keys"><span class="key">↑</span><span class="key">←</span><span class="key">↓</span><span class="key">→</span></span></div>
+      <div class="hint-row"><span>Альт.</span><span class="keys"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></span></div>
+      <div class="hint-row"><span>Пауза</span><span class="keys"><span class="key">Esc</span><span class="key">Space</span></span></div>
+    </div>
+    <div class="side-card">
+      <div class="label">Легенда</div>
+      <div class="hint-row"><span>Яблоко</span><b>+1 очко · +1 монета</b></div>
+      <div class="hint-row"><span>Препятствие</span><b>смертельно</b></div>
+      <div class="hint-row"><span>Стены</span><b id="sideWalls">смертельны</b></div>
+    </div>
+  </aside>
+
+  <div id="hud">
+    <div class="hud-left">
+      <div class="chip"><span class="icon"></span><span id="scoreHud">0</span></div>
+      <div class="chip coins"><span class="icon"></span><span id="coinsHud">0</span></div>
+    </div>
+    <button id="pauseBtn" type="button" aria-label="Пауза">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+    </button>
+  </div>
+
+  <div id="touchControls">
+    <div class="dpad">
+      <div class="dbtn up" data-dir="up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></div>
+      <div class="dbtn left" data-dir="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></div>
+      <div class="dbtn center"></div>
+      <div class="dbtn right" data-dir="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+      <div class="dbtn down" data-dir="down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <div id="menuScreen" class="overlay">
+    <p class="brand">Минимализм</p>
+    <h1 class="title">Змейка</h1>
+    <p class="subtitle">Собирай яблоки · примеряй скины · проходи уровни</p>
+    <div class="menu">
+      <button class="btn primary" type="button" id="playBtn">Играть</button>
+      <div class="row">
+        <button class="btn" type="button" id="shopBtn">Скины</button>
+        <button class="btn" type="button" id="levelsBtn">Уровни</button>
+      </div>
+      <button class="btn ghost" type="button" id="resetBtn">Сбросить прогресс</button>
+    </div>
+    <p class="hint">Стрелки или WASD · на телефоне — свайпы и кнопки</p>
+  </div>
+
+  <!-- Shop -->
+  <div id="shopScreen" class="overlay hidden">
+    <div class="panel-head">
+      <h2>Скины</h2>
+      <div class="balance"><span class="coin-dot"></span><span id="shopCoins">0</span></div>
+    </div>
+    <p class="hint" style="margin: -10px 0 18px">На время тестов все скины бесплатны</p>
+    <div class="grid" id="shopGrid"></div>
+    <div class="panel-actions">
+      <button class="btn" type="button" id="shopBack">Назад</button>
+    </div>
+  </div>
+
+  <!-- Levels -->
+  <div id="levelsScreen" class="overlay hidden">
+    <div class="panel-head">
+      <h2>Уровни</h2>
+      <div class="balance"><span class="coin-dot"></span><span id="levelsCoins">0</span></div>
+    </div>
+    <p class="hint" style="margin: -10px 0 18px">На время тестов все уровни открыты</p>
+    <div class="grid" id="levelsGrid"></div>
+    <div class="panel-actions">
+      <button class="btn" type="button" id="levelsBack">Назад</button>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div id="pauseScreen" class="overlay hidden">
+    <p class="brand">Пауза</p>
+    <h1 class="title" style="font-size:44px">Отдых</h1>
+    <div class="menu" style="margin-top:26px">
+      <button class="btn primary" type="button" id="resumeBtn">Продолжить</button>
+      <button class="btn" type="button" id="restartBtn">Заново</button>
+      <button class="btn ghost" type="button" id="toMenuBtn">В меню</button>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div id="gameOverScreen" class="overlay hidden">
+    <p class="brand">Результат</p>
+    <h1 class="title" style="font-size:46px">Игра окончена</h1>
+    <div class="stats">
+      <div class="stat"><b id="finalScore">0</b><span>Очки</span></div>
+      <div class="stat gold"><b id="finalCoins">0</b><span>Монеты</span></div>
+    </div>
+    <div class="menu">
+      <button class="btn primary" type="button" id="againBtn">Ещё раз</button>
+      <button class="btn ghost" type="button" id="menuBtn">В меню</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     TEST MODE
+  ============================================================ */
+  const TEST_MODE = true;
+
+  /* ============================================================
+     CONFIG
+  ============================================================ */
+  const STORAGE_KEY = "snake_meta_v4";
+
+  const SKINS = [
+    { id: "mint",    name: "Мята",     price: 0,   head: "#22c55e", body: "#4ade80", hat: "none",       pattern: "none",   desc: "Классика" },
+    { id: "sky",     name: "Небо",     price: 40,  head: "#3b82f6", body: "#60a5fa", hat: "none",       pattern: "stripes",desc: "Полоски" },
+    { id: "coral",   name: "Коралл",   price: 80,  head: "#fb7185", body: "#fda4af", hat: "bow",        pattern: "none",   desc: "Бантик" },
+    { id: "amber",   name: "Янтарь",   price: 120, head: "#f59e0b", body: "#fbbf24", hat: "cap",        pattern: "none",   desc: "Кепка" },
+    { id: "violet",  name: "Лаванда",  price: 160, head: "#8b5cf6", body: "#a78bfa", hat: "wizard",     pattern: "dots",   desc: "Шляпа волшебника" },
+    { id: "rose",    name: "Роза",     price: 200, head: "#ec4899", body: "#f472b6", hat: "glasses",    pattern: "none",   desc: "Очки" },
+    { id: "teal",    name: "Бирюза",   price: 240, head: "#14b8a6", body: "#2dd4bf", hat: "headphones", pattern: "scales", desc: "Наушники" },
+    { id: "indigo",  name: "Индиго",   price: 280, head: "#6366f1", body: "#818cf8", hat: "crown",      pattern: "none",   desc: "Корона" },
+    { id: "slate",   name: "Графит",   price: 320, head: "#475569", body: "#64748b", hat: "tophat",     pattern: "stripes",desc: "Цилиндр" },
+    { id: "lime",    name: "Лайм",     price: 360, head: "#84cc16", body: "#a3e635", hat: "horns",      pattern: "zigzag", desc: "Рожки" },
+    { id: "sunset",  name: "Закат",    price: 420, head: "#f97316", body: "#fb923c", hat: "halo",       pattern: "none",   desc: "Нимб" },
+    { id: "ice",     name: "Лёд",      price: 480, head: "#0ea5e9", body: "#38bdf8", hat: "viking",     pattern: "scales", desc: "Шлем викинга" },
+    { id: "royal",   name: "Королевский", price: 560, head: "#7c3aed", body: "#a78bfa", hat: "crown",  pattern: "dots",   desc: "Корона + узор" },
+    { id: "ninja",   name: "Ниндзя",   price: 640, head: "#1f2937", body: "#374151", hat: "headband",  pattern: "none",   desc: "Повязка" },
+    { id: "panda",   name: "Панда",    price: 720, head: "#f9fafb", body: "#e5e7eb", hat: "panda",     pattern: "dots",   desc: "Ушки панды" },
+  ];
+
+  const LEVELS = [
+    { id: 0, name: "Новичок",   price: 0,   speed: 175, obstacles: 0,  wrap: true,  desc: "Стены проходят насквозь" },
+    { id: 1, name: "Классика",  price: 0,   speed: 165, obstacles: 0,  wrap: false, desc: "Стены смертельны" },
+    { id: 2, name: "Лес",       price: 60,  speed: 160, obstacles: 8,  wrap: false, desc: "Появляются препятствия" },
+    { id: 3, name: "Разгон",    price: 120, speed: 130, obstacles: 0,  wrap: false, desc: "Быстрая змейка" },
+    { id: 4, name: "Лабиринт",  price: 200, speed: 150, obstacles: 16, wrap: false, desc: "Много препятствий" },
+    { id: 5, name: "Хардкор",   price: 300, speed: 110, obstacles: 12, wrap: false, desc: "Быстро и опасно" },
+    { id: 6, name: "Бездна",    price: 450, speed: 95,  obstacles: 22, wrap: false, desc: "Максимальная сложность" },
+  ];
+
+  /* ============================================================
+     SAVE
+  ============================================================ */
+  const defaultSave = () => ({
+    coins: 0,
+    ownedSkins: ["mint"],
+    equippedSkin: "mint",
+    unlockedLevels: [0, 1],
+    best: {},
+  });
+  let save = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultSave();
+      const d = JSON.parse(raw);
+      const b = defaultSave();
+      return {
+        coins: Number.isFinite(d.coins) ? d.coins : b.coins,
+        ownedSkins: Array.isArray(d.ownedSkins) && d.ownedSkins.length ? d.ownedSkins : b.ownedSkins,
+        equippedSkin: typeof d.equippedSkin === "string" ? d.equippedSkin : b.equippedSkin,
+        unlockedLevels: Array.isArray(d.unlockedLevels) && d.unlockedLevels.length ? d.unlockedLevels : b.unlockedLevels,
+        best: d.best && typeof d.best === "object" ? d.best : {},
+      };
+    } catch { return defaultSave(); }
+  }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(save)); } catch {}
+  }
+  const getSkin = id => SKINS.find(s => s.id === id) || SKINS[0];
+  const getLevel = id => LEVELS.find(l => l.id === id) || LEVELS[1];
+  const isSkinOwned = id => TEST_MODE || save.ownedSkins.includes(id);
+  const isLevelUnlocked = id => TEST_MODE || save.unlockedLevels.includes(id);
+
+  /* ============================================================
+     DOM HELPERS
+  ============================================================ */
+  const $ = id => document.getElementById(id);
+  const canvas = $("game");
+  const ctx = canvas.getContext("2d");
+
+  const screens = {
+    menu: $("menuScreen"),
+    shop: $("shopScreen"),
+    levels: $("levelsScreen"),
+    pause: $("pauseScreen"),
+    over: $("gameOverScreen"),
+  };
+  const scoreHud = $("scoreHud");
+  const coinsHud = $("coinsHud");
+
+  function show(el) { if (el) el.classList.remove("hidden"); }
+  function hide(el) { if (el) el.classList.add("hidden"); }
+  function hideAll() { Object.values(screens).forEach(hide); }
+
+  /* ============================================================
+     CANVAS
+  ============================================================ */
+  const view = { w: 0, h: 0, dpr: 1, sidePad: 0 };
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    view.w = window.innerWidth;
+    view.h = window.innerHeight;
+    view.dpr = dpr;
+    view.sidePad = (view.w >= 1000) ? 240 : 0;
+    canvas.width = Math.floor(view.w * dpr);
+    canvas.height = Math.floor(view.h * dpr);
+    canvas.style.width = view.w + "px";
+    canvas.style.height = view.h + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (window.game) window.game.computeBoard();
+    render();
+  }
+  window.addEventListener("resize", resize);
+  window.addEventListener("orientationchange", () => setTimeout(resize, 80));
+
+  /* ============================================================
+     GAME
+  ============================================================ */
+  const DIRS = {
+    up:    { x: 0,  y: -1 },
+    down:  { x: 0,  y: 1  },
+    left:  { x: -1, y: 0  },
+    right: { x: 1,  y: 0  },
+  };
+
+  class Game {
+    constructor() {
+      this.levelId = 1;
+      this.reset();
+    }
+
+    reset() {
+      const lvl = getLevel(this.levelId);
+      this.level = lvl;
+      this.speed = lvl.speed;
+      this.wrap = lvl.wrap;
+
+      this.score = 0;
+      this.coinsEarned = 0;
+      this.alive = true;
+      this.paused = false;
+      this.started = false;
+
+      this.cols = 20;
+      this.rows = 20;
+      this.computeBoard();
+
+      const cx = Math.floor(this.cols / 2);
+      const cy = Math.floor(this.rows / 2);
+      this.snake = [
+        { x: cx,     y: cy },
+        { x: cx - 1, y: cy },
+        { x: cx - 2, y: cy },
+        { x: cx - 3, y: cy },
+      ];
+      this.visual = this.snake.map(s => ({ x: s.x, y: s.y }));
+
+      this.dir = DIRS.right;
+      this.pendingDirs = [];
+
+      this.obstacles = new Set();
+      this.buildObstacles(lvl.obstacles);
+
+      this.apple = null;
+      this.appleSpawn = 0;
+      this.spawnApple();
+
+      this.moveDuration = this.speed;
+      this.acc = 0;
+      this.eatPulse = 0;
+      this.deathPulse = 0;
+
+      updateSidePanels();
+    }
+
+    computeBoard() {
+      const availW = view.w - view.sidePad * 2 - 40;
+      const availH = view.h - 60;
+      const maxW = Math.min(availW, 640);
+      const maxH = Math.min(availH, 640);
+      const size = Math.max(220, Math.min(maxW, maxH));
+      this.cell = size / this.cols;
+      this.boardSize = size;
+      this.offsetX = (view.w - size) / 2;
+      this.offsetY = (view.h - size) / 2 + 6;
+    }
+
+    buildObstacles(count) {
+      if (!count) return;
+      const cx = Math.floor(this.cols / 2);
+      const cy = Math.floor(this.rows / 2);
+      const isSafe = (x, y) => {
+        if (Math.abs(y - cy) <= 1 && x >= cx - 5 && x <= cx + 5) return false;
+        if (Math.abs(x - cx) <= 1 && y >= cy - 5 && y <= cy + 5) return false;
+        return true;
+      };
+      let tries = 0;
+      while (this.obstacles.size < count && tries < count * 80) {
+        tries++;
+        const x = 1 + Math.floor(Math.random() * (this.cols - 2));
+        const y = 1 + Math.floor(Math.random() * (this.rows - 2));
+        if (!isSafe(x, y)) continue;
+        const key = x + "," + y;
+        if (this.obstacles.has(key)) continue;
+        this.obstacles.add(key);
+      }
+    }
+
+    spawnApple() {
+      const occ = new Set(this.obstacles);
+      for (const s of this.snake) occ.add(s.x + "," + s.y);
+      const free = [];
+      for (let y = 0; y < this.rows; y++)
+        for (let x = 0; x < this.cols; x++)
+          if (!occ.has(x + "," + y)) free.push({ x, y });
+      if (!free.length) { this.apple = null; return; }
+      this.apple = free[Math.floor(Math.random() * free.length)];
+      this.appleSpawn = 1;
+    }
+
+    queueDir(name) {
+      const d = DIRS[name];
+      if (!d) return;
+      const last = this.pendingDirs.length ? this.pendingDirs[this.pendingDirs.length - 1] : this.dir;
+      if (last.x + d.x === 0 && last.y + d.y === 0) return;
+      if (last.x === d.x && last.y === d.y) return;
+      if (this.pendingDirs.length < 2) this.pendingDirs.push(d);
+    }
+
+    step() {
+      if (!this.alive || this.paused) return;
+
+      if (this.pendingDirs.length) {
+        const d = this.pendingDirs.shift();
+        if (!(this.dir.x + d.x === 0 && this.dir.y + d.y === 0)) this.dir = d;
+      }
+
+      const head = this.snake[0];
+      let nx = head.x + this.dir.x;
+      let ny = head.y + this.dir.y;
+
+      if (this.wrap) {
+        nx = (nx + this.cols) % this.cols;
+        ny = (ny + this.rows) % this.rows;
+      } else if (nx < 0 || ny < 0 || nx >= this.cols || ny >= this.rows) {
+        return this.die();
+      }
+
+      if (this.obstacles.has(nx + "," + ny)) return this.die();
+
+      const willGrow = this.apple && nx === this.apple.x && ny === this.apple.y;
+      for (let i = 0; i < this.snake.length; i++) {
+        const s = this.snake[i];
+        if (s.x === nx && s.y === ny) {
+          if (!willGrow && i === this.snake.length - 1) continue;
+          return this.die();
+        }
+      }
+
+      this.snake.unshift({ x: nx, y: ny });
+      this.visual.unshift({ x: head.x, y: head.y });
+
+      if (willGrow) {
+        this.score += 1;
+        this.coinsEarned += 1;
+        this.eatPulse = 1;
+        this.spawnApple();
+        if (this.score % 5 === 0) this.moveDuration = Math.max(70, this.moveDuration - 4);
+      } else {
+        this.snake.pop();
+        this.visual.pop();
+      }
+      updateHud();
+    }
+
+    die() {
+      this.alive = false;
+      this.deathPulse = 1;
+      onGameOver();
+    }
+
+    update(dt) {
+      if (this.eatPulse > 0) this.eatPulse = Math.max(0, this.eatPulse - dt / 260);
+      if (this.deathPulse > 0) this.deathPulse = Math.max(0, this.deathPulse - dt / 520);
+      if (this.appleSpawn > 0) this.appleSpawn = Math.max(0, this.appleSpawn - dt / 220);
+
+      if (!this.alive || this.paused || !this.started) return;
+
+      this.acc += dt;
+      while (this.acc >= this.moveDuration) {
+        this.acc -= this.moveDuration;
+        this.step();
+        if (!this.alive) break;
+      }
+
+      const t = this.alive ? Math.min(1, this.acc / this.moveDuration) : 1;
+      const ease = 1 - Math.pow(1 - t, 3);
+      const n = this.snake.length;
+      for (let i = 0; i < n; i++) {
+        const target = this.snake[i];
+        const v = this.visual[i];
+        if (!v) { this.visual[i] = { x: target.x, y: target.y }; continue; }
+        let dx = target.x - v.x;
+        let dy = target.y - v.y;
+        if (this.wrap) {
+          if (Math.abs(dx) > 1) dx = dx > 0 ? -1 : 1;
+          if (Math.abs(dy) > 1) dy = dy > 0 ? -1 : 1;
+        }
+        v.x = v.x + dx * (this.wrap ? 1 : ease);
+        v.y = v.y + dy * (this.wrap ? 1 : ease);
+      }
+    }
+  }
+
+  window.game = new Game();
+  let lastTime = performance.now();
+
+  function loop(t) {
+    const dt = Math.min(50, t - lastTime);
+    lastTime = t;
+    if (window.game) window.game.update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  /* ============================================================
+     RENDER
+  ============================================================ */
+  function roundRect(c, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function posX(gx) { return window.game.offsetX + (gx + 0.5) * window.game.cell; }
+  function posY(gy) { return window.game.offsetY + (gy + 0.5) * window.game.cell; }
+
+  function render() {
+    const w = view.w, h = view.h;
+    if (!w || !h) return;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#f6f7f9";
+    ctx.fillRect(0, 0, w, h);
+
+    const game = window.game;
+    if (!game) return;
+    const cell = game.cell, boardSize = game.boardSize;
+    const offsetX = game.offsetX, offsetY = game.offsetY;
+    const cols = game.cols, rows = game.rows;
+
+    ctx.save();
+    ctx.shadowColor = "rgba(16,24,40,.06)";
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 8;
+    ctx.fillStyle = "#ffffff";
+    roundRect(ctx, offsetX - 6, offsetY - 6, boardSize + 12, boardSize + 12, 24);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(16,24,40,.045)";
+    ctx.lineWidth = 1;
+    for (let i = 1; i < cols; i++) {
+      const x = offsetX + i * cell;
+      ctx.beginPath(); ctx.moveTo(x, offsetY); ctx.lineTo(x, offsetY + boardSize); ctx.stroke();
+    }
+    for (let j = 1; j < rows; j++) {
+      const y = offsetY + j * cell;
+      ctx.beginPath(); ctx.moveTo(offsetX, y); ctx.lineTo(offsetX + boardSize, y); ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = "#e4e6ea";
+    ctx.lineWidth = 1;
+    roundRect(ctx, offsetX - 6, offsetY - 6, boardSize + 12, boardSize + 12, 24);
+    ctx.stroke();
+
+    for (const key of game.obstacles) {
+      const parts = key.split(",");
+      const x = +parts[0], y = +parts[1];
+      const cx = posX(x), cy = posY(y);
+      const r = cell * 0.28;
+      ctx.fillStyle = "#e4e6ea";
+      roundRect(ctx, cx - r, cy - r, r * 2, r * 2, r * 0.5);
+      ctx.fill();
+    }
+
+    if (game.apple) {
+      const cx = posX(game.apple.x);
+      const cy = posY(game.apple.y);
+      const pop = 1 - game.appleSpawn;
+      const baseR = cell * 0.32;
+      const pulse = 1 + Math.sin(performance.now() / 340) * 0.04 + game.eatPulse * 0.35;
+      const r = baseR * pulse * (0.6 + pop * 0.4);
+
+      ctx.save();
+      ctx.globalAlpha = 0.25 * (1 - game.eatPulse);
+      const g = ctx.createRadialGradient(cx, cy, r * 0.6, cx, cy, r * 2.2);
+      g.addColorStop(0, "rgba(239,68,68,.55)");
+      g.addColorStop(1, "rgba(239,68,68,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, r * 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = "#ef4444";
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,.55)";
+      ctx.beginPath(); ctx.arc(cx - r * 0.32, cy - r * 0.32, r * 0.28, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#22c55e";
+      ctx.beginPath();
+      ctx.ellipse(cx + r * 0.35, cy - r * 0.95, r * 0.34, r * 0.17, -0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    drawSnake();
+  }
+
+  function drawSnake() {
+    const game = window.game;
+    if (!game) return;
+    const skin = getSkin(save.equippedSkin);
+    const cell = game.cell;
+    const deathK = game.deathPulse;
+    const pts = game.visual.map(v => ({ x: posX(v.x), y: posY(v.y) }));
+    if (pts.length < 2) return;
+
+    const bodyWidth = cell * 0.72;
+    const headWidth = cell * 0.82;
+    const alpha = deathK > 0 ? 0.4 + 0.6 * (1 - deathK) : 1;
+
+    ctx.save();
+    ctx.globalAlpha = 0.14 * alpha;
+    ctx.strokeStyle = "#0f172a";
+    ctx.lineWidth = bodyWidth + 5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y + 2);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y + 2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    const grad = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[pts.length - 1].x, pts[pts.length - 1].y);
+    grad.addColorStop(0, skin.head);
+    grad.addColorStop(1, skin.body);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = bodyWidth;
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke();
+    ctx.restore();
+
+    if (skin.pattern && skin.pattern !== "none") {
+      drawPattern(pts, bodyWidth, skin, alpha);
+    }
+
+    const head = pts[0];
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = "rgba(16,24,40,.18)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
+    ctx.fillStyle = skin.head;
+    ctx.beginPath(); ctx.arc(head.x, head.y, headWidth / 2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    if (deathK < 0.6) drawEyes(head.x, head.y, headWidth, game.dir, alpha);
+    if (skin.hat && skin.hat !== "none") drawHat(skin.hat, head.x, head.y, headWidth, game.dir, alpha);
+  }
+
+  function drawPattern(pts, width, skin, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.55;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if (skin.pattern === "stripes" || skin.pattern === "zigzag") {
+      ctx.strokeStyle = "rgba(255,255,255,.55)";
+      ctx.lineWidth = Math.max(2, width * 0.16);
+      for (let i = 2; i < pts.length; i += 2) {
+        const a = pts[i - 1], b = pts[i];
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const ang = Math.atan2(b.y - a.y, b.x - a.x) + Math.PI / 2;
+        const len = width * 0.32;
+        ctx.beginPath();
+        ctx.moveTo(mx - Math.cos(ang) * len, my - Math.sin(ang) * len);
+        ctx.lineTo(mx + Math.cos(ang) * len, my + Math.sin(ang) * len);
+        ctx.stroke();
+      }
+    } else if (skin.pattern === "dots") {
+      ctx.fillStyle = "rgba(255,255,255,.6)";
+      for (let i = 2; i < pts.length; i += 2) {
+        const p = pts[i];
+        const r = Math.max(1.6, width * 0.11);
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+      }
+    } else if (skin.pattern === "scales") {
+      ctx.strokeStyle = "rgba(255,255,255,.45)";
+      ctx.lineWidth = Math.max(1.4, width * 0.08);
+      for (let i = 1; i < pts.length; i++) {
+        const p = pts[i];
+        const r = width * 0.32;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, Math.PI * 1.15, Math.PI * 1.85);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawEyes(hx, hy, headWidth, dir, alpha) {
+    const off = headWidth * 0.22;
+    const r = Math.max(1.8, headWidth * 0.1);
+    let e1x, e1y, e2x, e2y;
+    if (dir.x === 1)       { e1x = hx + off; e1y = hy - off; e2x = hx + off; e2y = hy + off; }
+    else if (dir.x === -1) { e1x = hx - off; e1y = hy - off; e2x = hx - off; e2y = hy + off; }
+    else if (dir.y === -1) { e1x = hx - off; e1y = hy - off; e2x = hx + off; e2y = hy - off; }
+    else                   { e1x = hx - off; e1y = hy + off; e2x = hx + off; e2y = hy + off; }
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath(); ctx.arc(e1x, e1y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(e2x, e2y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(e1x - r * 0.3, e1y - r * 0.3, r * 0.42, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(e2x - r * 0.3, e2y - r * 0.3, r * 0.42, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawHat(kind, hx, hy, headWidth, dir, alpha) {
+    const R = headWidth / 2;
+    const top = hy - R;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    if (kind === "cap") {
+      ctx.fillStyle = "#1f2937";
+      ctx.beginPath();
+      ctx.arc(hx, hy - R * 0.15, R * 0.95, Math.PI, 0);
+      ctx.fill();
+      const kx = dir.x !== 0 ? dir.x : (dir.y !== 0 ? 0 : 1);
+      const ky = dir.y !== 0 ? dir.y : 0;
+      ctx.fillStyle = "#111827";
+      ctx.beginPath();
+      ctx.ellipse(hx + kx * R * 0.85, hy - R * 0.15 + ky * R * 0.6, R * 0.6, R * 0.25,
+                  Math.atan2(ky, kx), 0, Math.PI * 2);
+      ctx.fill();
+    } else if (kind === "crown") {
+      ctx.fillStyle = "#f5a524";
+      const w = R * 1.6, h = R * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(hx - w / 2, top);
+      ctx.lineTo(hx - w / 2, top - h * 0.5);
+      ctx.lineTo(hx - w / 4, top - h * 0.1);
+      ctx.lineTo(hx, top - h);
+      ctx.lineTo(hx + w / 4, top - h * 0.1);
+      ctx.lineTo(hx + w / 2, top - h * 0.5);
+      ctx.lineTo(hx + w / 2, top);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#ef4444";
+      ctx.beginPath(); ctx.arc(hx, top - h * 0.4, R * 0.1, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "tophat") {
+      ctx.fillStyle = "#111827";
+      const w = R * 1.4, h = R * 1.2;
+      ctx.fillRect(hx - w / 2, top - h, w, h);
+      ctx.beginPath();
+      ctx.ellipse(hx, top, w * 0.85, R * 0.16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(hx - w / 2, top - h * 0.28, w, h * 0.18);
+    } else if (kind === "bow") {
+      ctx.fillStyle = "#ec4899";
+      const s = R * 0.55;
+      ctx.beginPath();
+      ctx.moveTo(hx - R * 0.1, top + R * 0.15);
+      ctx.quadraticCurveTo(hx - s * 2, top - s, hx - s * 0.6, top + R * 0.25);
+      ctx.quadraticCurveTo(hx - s * 1.4, top + s, hx - R * 0.1, top + R * 0.35);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(hx + R * 0.1, top + R * 0.15);
+      ctx.quadraticCurveTo(hx + s * 2, top - s, hx + s * 0.6, top + R * 0.25);
+      ctx.quadraticCurveTo(hx + s * 1.4, top + s, hx + R * 0.1, top + R * 0.35);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#be185d";
+      ctx.beginPath(); ctx.arc(hx, top + R * 0.25, R * 0.18, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "halo") {
+      ctx.strokeStyle = "#fde047";
+      ctx.lineWidth = Math.max(2.5, R * 0.16);
+      ctx.beginPath();
+      ctx.ellipse(hx, top - R * 0.15, R * 0.75, R * 0.24, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (kind === "headphones") {
+      ctx.strokeStyle = "#0f172a";
+      ctx.lineWidth = Math.max(2.5, R * 0.18);
+      ctx.beginPath();
+      ctx.arc(hx, hy, R * 1.05, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.ellipse(hx - R * 0.95, hy - R * 0.1, R * 0.28, R * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(hx + R * 0.95, hy - R * 0.1, R * 0.28, R * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#3b82f6";
+      ctx.beginPath(); ctx.arc(hx - R * 0.95, hy - R * 0.1, R * 0.1, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(hx + R * 0.95, hy - R * 0.1, R * 0.1, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "glasses") {
+      const off = R * 0.5;
+      const dirX = dir.x, dirY = dir.y;
+      const cx1 = hx + (dirX !== 0 ? dirX * off : -off * 0.8);
+      const cy1 = hy + (dirY !== 0 ? dirY * off : 0);
+      const cx2 = hx + (dirX !== 0 ? dirX * off :  off * 0.8);
+      const cy2 = hy + (dirY !== 0 ? dirY * off : 0);
+      ctx.strokeStyle = "#0f172a";
+      ctx.lineWidth = Math.max(2, R * 0.14);
+      ctx.fillStyle = "rgba(148,163,184,.35)";
+      ctx.beginPath(); ctx.arc(cx1, cy1, R * 0.42, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx2, cy2, R * 0.42, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    } else if (kind === "headband") {
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(hx - R * 1.05, hy - R * 0.65, R * 2.1, R * 0.4);
+      ctx.beginPath();
+      ctx.moveTo(hx - R * 1.05, hy - R * 0.55);
+      ctx.lineTo(hx - R * 1.7, hy - R * 0.9);
+      ctx.lineTo(hx - R * 1.65, hy - R * 0.35);
+      ctx.closePath(); ctx.fill();
+    } else if (kind === "horns") {
+      ctx.fillStyle = "#7c2d12";
+      ctx.beginPath();
+      ctx.moveTo(hx - R * 0.5, top);
+      ctx.quadraticCurveTo(hx - R * 0.9, top - R * 0.9, hx - R * 0.35, top - R * 0.7);
+      ctx.quadraticCurveTo(hx - R * 0.4, top - R * 0.3, hx - R * 0.25, top);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(hx + R * 0.5, top);
+      ctx.quadraticCurveTo(hx + R * 0.9, top - R * 0.9, hx + R * 0.35, top - R * 0.7);
+      ctx.quadraticCurveTo(hx + R * 0.4, top - R * 0.3, hx + R * 0.25, top);
+      ctx.closePath(); ctx.fill();
+    } else if (kind === "wizard") {
+      ctx.fillStyle = "#6d28d9";
+      const w = R * 1.5;
+      ctx.beginPath();
+      ctx.ellipse(hx, top + R * 0.05, w * 0.8, R * 0.16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(hx - w * 0.42, top);
+      ctx.lineTo(hx + w * 0.42, top);
+      ctx.lineTo(hx + w * 0.15, top - R * 2.1);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#fde047";
+      ctx.beginPath(); ctx.arc(hx - w * 0.15, top - R * 0.7, R * 0.09, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(hx + w * 0.12, top - R * 1.2, R * 0.07, 0, Math.PI * 2); ctx.fill();
+    } else if (kind === "viking") {
+      ctx.fillStyle = "#94a3b8";
+      ctx.beginPath();
+      ctx.arc(hx, hy - R * 0.15, R * 1.0, Math.PI, 0);
+      ctx.fill();
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(hx - R * 1.0, hy - R * 0.25, R * 2.0, R * 0.2);
+      ctx.fillStyle = "#f1f5f9";
+      ctx.beginPath();
+      ctx.moveTo(hx - R * 0.95, hy - R * 0.15);
+      ctx.quadraticCurveTo(hx - R * 1.7, hy - R * 0.9, hx - R * 0.85, hy - R * 1.15);
+      ctx.quadraticCurveTo(hx - R * 1.05, hy - R * 0.7, hx - R * 0.7, hy - R * 0.35);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(hx + R * 0.95, hy - R * 0.15);
+      ctx.quadraticCurveTo(hx + R * 1.7, hy - R * 0.9, hx + R * 0.85, hy - R * 1.15);
+      ctx.quadraticCurveTo(hx + R * 1.05, hy - R * 0.7, hx + R * 0.7, hy - R * 0.35);
+      ctx.closePath(); ctx.fill();
+    } else if (kind === "panda") {
+      ctx.fillStyle = "#111827";
+      ctx.beginPath();
+      ctx.arc(hx - R * 0.65, top + R * 0.05, R * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(hx + R * 0.65, top + R * 0.05, R * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      const off = R * 0.45;
+      ctx.beginPath();
+      ctx.ellipse(hx - off, hy - R * 0.1, R * 0.28, R * 0.34, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(hx + off, hy - R * 0.1, R * 0.28, R * 0.34, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function skinPreviewSVG(skin) {
+    const w = 130, h = 60;
+    const headX = 34, headY = 34, headR = 12;
+    let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
+    const gradId = "g_" + skin.id;
+    svg += `<defs><linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="0">`;
+    svg += `<stop offset="0%" stop-color="${skin.head}"/>`;
+    svg += `<stop offset="100%" stop-color="${skin.body}"/></linearGradient></defs>`;
+    svg += `<path d="M ${headX} ${headY} L 106 ${headY}" stroke="url(#${gradId})" stroke-width="16" stroke-linecap="round" fill="none"/>`;
+
+    if (skin.pattern === "stripes" || skin.pattern === "zigzag") {
+      for (let x = 60; x <= 100; x += 14) {
+        svg += `<line x1="${x}" y1="${headY - 6}" x2="${x}" y2="${headY + 6}" stroke="rgba(255,255,255,.6)" stroke-width="2.4" stroke-linecap="round"/>`;
+      }
+    } else if (skin.pattern === "dots") {
+      for (let x = 60; x <= 100; x += 14) {
+        svg += `<circle cx="${x}" cy="${headY}" r="2" fill="rgba(255,255,255,.75)"/>`;
+      }
+    } else if (skin.pattern === "scales") {
+      for (let x = 60; x <= 100; x += 12) {
+        svg += `<path d="M ${x - 5} ${headY + 3} A 5 5 0 0 1 ${x + 5} ${headY + 3}" stroke="rgba(255,255,255,.5)" stroke-width="1.6" fill="none"/>`;
+      }
+    }
+
+    svg += `<circle cx="${headX}" cy="${headY}" r="${headR}" fill="${skin.head}"/>`;
+    svg += `<circle cx="${headX + 5}" cy="${headY - 4}" r="1.8" fill="#0f172a"/>`;
+    svg += `<circle cx="${headX + 5}" cy="${headY + 4}" r="1.8" fill="#0f172a"/>`;
+    svg += `<circle cx="${headX + 4.3}" cy="${headY - 4.7}" r="0.8" fill="#fff"/>`;
+    svg += `<circle cx="${headX + 4.3}" cy="${headY + 3.3}" r="0.8" fill="#fff"/>`;
+
+    const top = headY - headR;
+    const hatSvg = {
+      cap: `<path d="M ${headX - 11} ${top + 2} A 11 11 0 0 1 ${headX + 11} ${top + 2} Z" fill="#1f2937"/><ellipse cx="${headX + 11}" cy="${top + 5}" rx="7" ry="2.8" fill="#111827"/>`,
+      crown: `<path d="M ${headX - 10} ${top} L ${headX - 10} ${top - 5} L ${headX - 5} ${top - 1} L ${headX} ${top - 9} L ${headX + 5} ${top - 1} L ${headX + 10} ${top - 5} L ${headX + 10} ${top} Z" fill="#f5a524"/><circle cx="${headX}" cy="${top - 4}" r="1.5" fill="#ef4444"/>`,
+      tophat: `<rect x="${headX - 8}" y="${top - 14}" width="16" height="14" fill="#111827"/><ellipse cx="${headX}" cy="${top}" rx="12" ry="2.6" fill="#111827"/><rect x="${headX - 8}" y="${top - 5}" width="16" height="3" fill="#ef4444"/>`,
+      bow: `<path d="M ${headX - 1} ${top + 3} Q ${headX - 12} ${top - 6} ${headX - 4} ${top + 5} Z" fill="#ec4899"/><path d="M ${headX + 1} ${top + 3} Q ${headX + 12} ${top - 6} ${headX + 4} ${top + 5} Z" fill="#ec4899"/><circle cx="${headX}" cy="${top + 4}" r="2.2" fill="#be185d"/>`,
+      halo: `<ellipse cx="${headX}" cy="${top - 3}" rx="9" ry="3" fill="none" stroke="#fde047" stroke-width="2.6"/>`,
+      headphones: `<path d="M ${headX - 12} ${headY} A 12 12 0 0 1 ${headX + 12} ${headY}" stroke="#0f172a" stroke-width="2.6" fill="none"/><ellipse cx="${headX - 11}" cy="${headY}" rx="3" ry="4.5" fill="#0f172a"/><ellipse cx="${headX + 11}" cy="${headY}" rx="3" ry="4.5" fill="#0f172a"/>`,
+      glasses: `<circle cx="${headX + 5}" cy="${headY - 3}" r="4.6" fill="rgba(148,163,184,.35)" stroke="#0f172a" stroke-width="1.8"/><circle cx="${headX + 5}" cy="${headY + 4}" r="4.6" fill="rgba(148,163,184,.35)" stroke="#0f172a" stroke-width="1.8"/>`,
+      headband: `<rect x="${headX - 12}" y="${headY - 8}" width="24" height="4" fill="#ef4444"/><path d="M ${headX - 12} ${headY - 6} L ${headX - 20} ${headY - 10} L ${headX - 18} ${headY - 3} Z" fill="#ef4444"/>`,
+      horns: `<path d="M ${headX - 6} ${top} Q ${headX - 12} ${top - 12} ${headX - 3} ${top - 8} Z" fill="#7c2d12"/><path d="M ${headX + 6} ${top} Q ${headX + 12} ${top - 12} ${headX + 3} ${top - 8} Z" fill="#7c2d12"/>`,
+      wizard: `<ellipse cx="${headX}" cy="${top + 1}" rx="14" ry="2.6" fill="#6d28d9"/><path d="M ${headX - 7} ${top} L ${headX + 7} ${top} L ${headX + 2} ${top - 20} Z" fill="#6d28d9"/><circle cx="${headX - 1}" cy="${top - 9}" r="1.3" fill="#fde047"/>`,
+      viking: `<path d="M ${headX - 12} ${headY - 2} A 12 12 0 0 1 ${headX + 12} ${headY - 2} Z" fill="#94a3b8"/><rect x="${headX - 12}" y="${headY - 5}" width="24" height="3" fill="#64748b"/><path d="M ${headX - 11} ${headY - 4} Q ${headX - 20} ${headY - 12} ${headX - 10} ${headY - 14} Q ${headX - 13} ${headY - 8} ${headX - 9} ${headY - 5} Z" fill="#f1f5f9"/><path d="M ${headX + 11} ${headY - 4} Q ${headX + 20} ${headY - 12} ${headX + 10} ${headY - 14} Q ${headX + 13} ${headY - 8} ${headX + 9} ${headY - 5} Z" fill="#f1f5f9"/>`,
+      panda: `<circle cx="${headX - 7}" cy="${top + 1}" r="4" fill="#111827"/><circle cx="${headX + 7}" cy="${top + 1}" r="4" fill="#111827"/><ellipse cx="${headX + 5}" cy="${headY - 1}" rx="3.4" ry="4" fill="#111827"/><ellipse cx="${headX + 5}" cy="${headY + 4}" rx="3.4" ry="4" fill="#111827"/>`,
+    };
+    if (hatSvg[skin.hat]) svg += hatSvg[skin.hat];
+    svg += `</svg>`;
+    return svg;
+  }
+
+  /* ============================================================
+     UI
+  ============================================================ */
+  function updateHud() {
+    const game = window.game;
+    if (!game) return;
+    scoreHud.textContent = game.score;
+    coinsHud.textContent = save.coins + (game.coinsEarned || 0);
+  }
+
+  function updateSidePanels() {
+    const game = window.game;
+    if (!game) return;
+    const lvl = getLevel(game.levelId);
+    const elLevel = $("sideLevel");
+    const elSpeed = $("sideSpeed");
+    const elBest = $("sideBest");
+    const elWalls = $("sideWalls");
+    if (elLevel) elLevel.textContent = lvl.name;
+    if (elSpeed) elSpeed.textContent = lvl.speed + " мс / шаг";
+    if (elBest) elBest.textContent = save.best[lvl.id] || 0;
+    if (elWalls) elWalls.textContent = lvl.wrap ? "проходят насквозь" : "смертельны";
+  }
+
+  function openMenu() {
+    hideAll();
+    show(screens.menu);
+    const game = window.game;
+    if (game) { game.paused = true; game.started = false; }
+    updateHud();
+    updateSidePanels();
+  }
+
+  function startGame(levelId) {
+    const game = window.game;
+    game.levelId = levelId;
+    game.reset();
+    game.started = true;
+    game.paused = false;
+    hideAll();
+    updateHud();
+    updateSidePanels();
+    lastTime = performance.now();
+  }
+
+  function renderShop() {
+    const el = $("shopCoins");
+    if (el) el.textContent = save.coins;
+    const grid = $("shopGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    SKINS.forEach(skin => {
+      const owned = isSkinOwned(skin.id);
+      const equipped = save.equippedSkin === skin.id;
+      const card = document.createElement("div");
+      card.className = "card" + (equipped ? " equipped" : "");
+
+      let footer;
+      if (owned) {
+        footer = equipped
+          ? `<span class="badge eq">Надет</span>`
+          : `<span class="badge eq" style="background:rgba(34,197,94,.12);color:#15803d">Открыт</span>`;
+      } else if (TEST_MODE) {
+        footer = `<span class="price free">Бесплатно</span><span class="badge lock">Тест</span>`;
+      } else {
+        footer = `<span class="price"><span class="coin-dot"></span>${skin.price}</span>`;
+      }
+
+      card.innerHTML = `
+        <div class="preview">${skinPreviewSVG(skin)}</div>
+        <div class="name">${skin.name}</div>
+        <div class="meta">${skin.desc || ""}</div>
+        <div class="footer">${footer}</div>
+      `;
+
+      card.addEventListener("click", () => {
+        if (owned) {
+          save.equippedSkin = skin.id;
+          persist();
+          renderShop();
+          updateHud();
+          render();
+        } else if (TEST_MODE || save.coins >= skin.price) {
+          if (!TEST_MODE) save.coins -= skin.price;
+          if (!save.ownedSkins.includes(skin.id)) save.ownedSkins.push(skin.id);
+          save.equippedSkin = skin.id;
+          persist();
+          renderShop();
+          updateHud();
+          render();
+        } else {
+          shake(card);
+        }
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  function renderLevels() {
+    const el = $("levelsCoins");
+    if (el) el.textContent = save.coins;
+    const grid = $("levelsGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    LEVELS.forEach(lvl => {
+      const unlocked = isLevelUnlocked(lvl.id);
+      const best = save.best[lvl.id] || 0;
+      const card = document.createElement("div");
+      card.className = "card";
+      let footer;
+      if (unlocked) {
+        footer = `<span class="badge">Открыт</span><span class="price" style="color:var(--text-3);font-weight:600">Рекорд ${best}</span>`;
+      } else if (TEST_MODE) {
+        footer = `<span class="price free">Бесплатно</span><span class="badge lock">Тест</span>`;
+      } else {
+        footer = `<span class="price"><span class="coin-dot"></span>${lvl.price}</span><span class="badge lock">Закрыт</span>`;
+      }
+      card.innerHTML = `
+        <div class="name">${lvl.name}</div>
+        <div class="meta">${lvl.desc}</div>
+        <div class="footer">${footer}</div>
+      `;
+      card.addEventListener("click", () => {
+        if (unlocked) startGame(lvl.id);
+        else if (TEST_MODE || save.coins >= lvl.price) {
+          if (!TEST_MODE) save.coins -= lvl.price;
+          if (!save.unlockedLevels.includes(lvl.id)) save.unlockedLevels.push(lvl.id);
+          persist();
+          renderLevels();
+          updateHud();
+        } else shake(card);
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  function shake(el) {
+    el.animate(
+      [{ transform: "translateX(0)" }, { transform: "translateX(-5px)" },
+       { transform: "translateX(5px)" }, { transform: "translateX(-3px)" },
+       { transform: "translateX(0)" }],
+      { duration: 280, easing: "ease-out" }
+    );
+  }
+
+  function onGameOver() {
+    const game = window.game;
+    save.coins += game.coinsEarned;
+    const prev = save.best[game.levelId] || 0;
+    if (game.score > prev) save.best[game.levelId] = game.score;
+    persist();
+    const fs = $("finalScore"), fc = $("finalCoins");
+    if (fs) fs.textContent = game.score;
+    if (fc) fc.textContent = game.coinsEarned;
+    updateHud();
+    updateSidePanels();
+    setTimeout(() => show(screens.over), 380);
+  }
+
+  /* ============================================================
+     PAUSE
+  ============================================================ */
+  function togglePause() {
+    const game = window.game;
+    if (!game || !game.started || !game.alive) return;
+    if (game.paused) {
+      game.paused = false;
+      hide(screens.pause);
+      lastTime = performance.now();
+    } else {
+      game.paused = true;
+      show(screens.pause);
+    }
+  }
+
+  /* ============================================================
+     INPUT
+  ============================================================ */
+  const keyMap = {
+    ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+    w: "up", s: "down", a: "left", d: "right",
+    W: "up", S: "down", A: "left", D: "right",
+    ц: "up", ы: "down", ф: "left", в: "right",
+    Ц: "up", Ы: "down", Ф: "left", В: "right",
+  };
+  window.addEventListener("keydown", e => {
+    const game = window.game;
+    if (!game || !game.started || !game.alive) return;
+    if (e.key === " " || e.key === "Escape") { e.preventDefault(); togglePause(); return; }
+    const d = keyMap[e.key];
+    if (d) { e.preventDefault(); game.queueDir(d); }
+  });
+
+  let touchStart = null;
+  canvas.addEventListener("touchstart", e => {
+    const game = window.game;
+    if (!game || !game.started || !game.alive) return;
+    const t = e.changedTouches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+  canvas.addEventListener("touchend", e => {
+    const game = window.game;
+    if (!touchStart || !game || !game.started || !game.alive) { touchStart = null; return; }
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (Math.max(adx, ady) < 22) { touchStart = null; return; }
+    if (adx > ady) game.queueDir(dx > 0 ? "right" : "left");
+    else game.queueDir(dy > 0 ? "down" : "up");
+    touchStart = null;
+  }, { passive: true });
+
+  document.querySelectorAll(".dbtn[data-dir]").forEach(btn => {
+    const fire = e => {
+      e.preventDefault();
+      const game = window.game;
+      if (!game || !game.started || !game.alive) return;
+      game.queueDir(btn.dataset.dir);
+    };
+    btn.addEventListener("touchstart", fire, { passive: false });
+    btn.addEventListener("mousedown", fire);
+  });
+
+  /* ============================================================
+     BUTTON BINDINGS — вынесено в отдельную функцию,
+     вызывается после полной загрузки DOM
+  ============================================================ */
+  function bindButtons() {
+    const on = (id, fn) => {
+      const el = $(id);
+      if (!el) { console.warn("Кнопка не найдена:", id); return; }
+      el.addEventListener("click", ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        fn();
+      });
+    };
+
+    on("playBtn", () => {
+      const unlocked = save.unlockedLevels.slice().sort((a, b) => a - b);
+      const last = TEST_MODE ? LEVELS[LEVELS.length - 1].id : (unlocked[unlocked.length - 1] ?? 1);
+      startGame(TEST_MODE ? 1 : last);
+    });
+
+    on("shopBtn", () => { hideAll(); renderShop(); show(screens.shop); });
+    on("levelsBtn", () => { hideAll(); renderLevels(); show(screens.levels); });
+    on("shopBack", openMenu);
+    on("levelsBack", openMenu);
+
+    on("pauseBtn", togglePause);
+    on("resumeBtn", togglePause);
+    on("restartBtn", () => startGame(window.game.levelId));
+    on("toMenuBtn", openMenu);
+    on("againBtn", () => startGame(window.game.levelId));
+    on("menuBtn", openMenu);
+
+    on("resetBtn", () => {
+      if (confirm("Сбросить весь прогресс: монеты, скины и уровни?")) {
+        save = defaultSave();
+        persist();
+        updateHud();
+        updateSidePanels();
+      }
+    });
+  }
+
+  /* ============================================================
+     INIT
+  ============================================================ */
+  function init() {
+    resize();
+    updateHud();
+    updateSidePanels();
+    openMenu();
+    bindButtons();
+    requestAnimationFrame(loop);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    const game = window.game;
+    if (document.hidden && game && game.started && game.alive && !game.paused) {
+      game.paused = true;
+      show(screens.pause);
+    }
+  });
+})();
+</script>
+</body>
+</html>

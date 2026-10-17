@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>АВТОНОМЕРА</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔢</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --surface-2:#eef2f9; --border:#dde5f0;
+  --text:#1b2430; --text-dim:#6b7a90;
+  --blue:#2563eb; --blue-dark:#1d4ed8; --blue-light:#dbeafe;
+  --orange:#f97316; --orange-dark:#ea580c;
+  --green:#16a34a; --red:#dc2626; --purple:#7c3aed; --gold:#eab308;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow:0 4px 14px rgba(15,23,42,.08);
+  --shadow-lg:0 12px 32px rgba(15,23,42,.14);
+}
+html,body{height:100%}
+body{
+  font-family:'Manrope',system-ui,sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; display:flex; flex-direction:column;
+  overflow-x:hidden; user-select:none; -webkit-font-smoothing:antialiased;
+}
+body.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes shake{
+  10%,90%{transform:translate3d(-1px,0,0)} 20%,80%{transform:translate3d(3px,0,0)}
+  30%,50%,70%{transform:translate3d(-6px,0,0)} 40%,60%{transform:translate3d(6px,0,0)}
+}
+h1,h2,h3,.display{font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-weight:400}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c6d2e2;border-radius:4px}
+
+header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(255,255,255,.92); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border); box-shadow:var(--shadow-sm);
+  padding:10px 14px;
+}
+.topbar{display:flex;align-items:center;gap:12px;max-width:1200px;margin:0 auto;flex-wrap:wrap}
+.brand{
+  font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:1.5px;
+  color:var(--blue); white-space:nowrap; margin-right:auto;
+  display:flex; align-items:center; gap:8px;
+}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);display:inline-block}
+.balance{
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,#fff7ed,#ffedd5);
+  border:1.5px solid #fed7aa; border-radius:12px;
+  padding:8px 16px; font-weight:800; font-size:1rem;
+  color:var(--orange-dark); white-space:nowrap; box-shadow:var(--shadow-sm);
+}
+.balance i{color:var(--orange)}
+.navbtns{display:flex;gap:6px;flex-wrap:wrap}
+.nav-btn{
+  background:var(--surface); border:1.5px solid var(--border); color:var(--text-dim);
+  border-radius:11px; padding:9px 15px; cursor:pointer; font-weight:700;
+  font-size:.85rem; font-family:inherit; transition:.18s;
+  display:flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.nav-btn:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-1px)}
+.nav-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.nav-btn i{font-size:.95rem}
+
+main{flex:1;width:100%;max-width:1200px;margin:0 auto;padding:20px 14px 100px}
+.view{display:none;animation:fadeIn .3s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.machine{
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:26px; padding:40px 24px 32px;
+  text-align:center; box-shadow:var(--shadow);
+  position:relative; overflow:hidden;
+  max-width:820px; margin:0 auto;
+}
+.machine::before{
+  content:''; position:absolute; top:-50%; right:-20%;
+  width:400px; height:400px;
+  background:radial-gradient(circle,rgba(37,99,235,.08),transparent 70%);
+  pointer-events:none;
+}
+.machine::after{
+  content:''; position:absolute; bottom:-50%; left:-20%;
+  width:400px; height:400px;
+  background:radial-gradient(circle,rgba(249,115,22,.07),transparent 70%);
+  pointer-events:none;
+}
+.machine > *{position:relative;z-index:1}
+.machine h2{font-size:2.2rem;color:var(--text);margin-bottom:4px;line-height:1}
+.machine .sub{color:var(--text-dim);font-size:.85rem;margin-bottom:28px;font-weight:600}
+
+.plate-wrap{display:flex;justify-content:center;margin-bottom:24px}
+.plate{
+  display:inline-flex;align-items:stretch;gap:3px;
+  background:linear-gradient(180deg,#ffffff,#f0f0f0);
+  border:3px solid #1b2430; border-radius:12px; padding:12px 10px;
+  box-shadow:0 10px 30px rgba(15,23,42,.18),inset 0 -3px 0 rgba(0,0,0,.06);
+}
+.reel{
+  width:66px;height:94px;overflow:hidden;position:relative;
+  background:#f5f5f5;border-radius:7px;border:1px solid #d0d0d0;
+  box-shadow:inset 0 5px 10px rgba(0,0,0,.09),inset 0 -5px 10px rgba(0,0,0,.09);
+}
+.reel .strip{position:absolute;left:0;top:0;width:100%;will-change:transform}
+.reel .strip .sym{
+  height:94px;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:3.2rem;color:#0f1720;line-height:1;
+}
+.reel.spinning .strip{filter:blur(.8px)}
+.reel.tick{animation:tickPop .14s ease}
+@keyframes tickPop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+.reel.stop-flash{box-shadow:0 0 0 3px var(--orange),inset 0 0 14px rgba(249,115,22,.4)}
+
+.plate .region{
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+  padding:0 6px 4px;margin-left:6px;
+  border-left:2px solid #c0c0c0;
+  min-width:52px;
+}
+.plate .region .code{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.5rem;color:#0f1720;line-height:1;
+  letter-spacing:.5px;margin-bottom:3px;
+}
+.plate .region .bottom-row{
+  display:flex;align-items:center;gap:4px;
+}
+.plate .region .rus{
+  font-size:.6rem;color:#0f1720;font-weight:800;
+  line-height:1;letter-spacing:1.5px;
+  font-family:'Manrope',sans-serif;
+}
+.plate .region .flag-img{
+  width:20px;height:auto;
+  border:1px solid #999;border-radius:2px;
+  box-shadow:0 1px 2px rgba(0,0,0,.15);
+}
+.plate.jackpot{animation:jackpotGlow 1s infinite alternate}
+@keyframes jackpotGlow{
+  from{box-shadow:0 0 0 4px var(--gold),0 10px 30px rgba(234,179,8,.4)}
+  to{box-shadow:0 0 0 4px var(--orange),0 10px 40px rgba(249,115,22,.6)}
+}
+
+.btn{
+  border:none;border-radius:13px;cursor:pointer;font-weight:800;font-family:inherit;
+  font-size:.95rem;padding:15px 28px;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  transition:.18s;position:relative;overflow:hidden;
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-main{
+  background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+  color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.35);
+  width:100%;max-width:380px;font-size:1.05rem;padding:18px 28px;
+}
+.btn-main:hover:not(:disabled){box-shadow:0 10px 30px rgba(37,99,235,.5);transform:translateY(-2px)}
+.btn-orange{background:linear-gradient(135deg,var(--orange),var(--orange-dark));color:#fff;box-shadow:0 6px 20px rgba(249,115,22,.35)}
+.btn-orange:hover{box-shadow:0 10px 30px rgba(249,115,22,.5)}
+.btn-ghost{background:var(--surface-2);color:var(--text);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-green{background:linear-gradient(135deg,var(--green),#15803d);color:#fff;box-shadow:0 6px 20px rgba(22,163,74,.3)}
+.btn-green:hover{box-shadow:0 10px 30px rgba(22,163,74,.45)}
+.btn-sm{padding:10px 18px;font-size:.82rem;border-radius:10px}
+
+.levelbar{
+  display:flex;align-items:center;gap:12px;justify-content:center;
+  margin-top:24px;font-size:.82rem;color:var(--text-dim);
+  flex-wrap:wrap;font-weight:600;
+}
+.level-chip{background:var(--blue-light);color:var(--blue-dark);border-radius:20px;padding:6px 15px;font-weight:800;font-size:.82rem}
+.xp-track{width:140px;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--orange));width:0%;transition:width .4s}
+
+.result-card{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(15,23,42,.55);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+.result-card.show{display:flex;animation:fadeIn .25s}
+.rc-inner{
+  background:var(--surface);border-radius:24px;padding:30px 24px;
+  max-width:420px;width:100%;text-align:center;
+  box-shadow:var(--shadow-lg);animation:popIn .4s cubic-bezier(.2,1.4,.5,1);
+  max-height:92vh;overflow-y:auto;
+}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.rc-plate{
+  display:inline-flex;align-items:center;gap:2px;
+  background:linear-gradient(180deg,#fff,#f0f0f0);
+  border:3px solid #1b2430;border-radius:10px;
+  padding:9px 7px;margin:6px 0 16px;
+  box-shadow:0 6px 18px rgba(15,23,42,.15);
+}
+.rc-plate .ch{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#0f1720;min-width:32px;text-align:center;line-height:1}
+.rc-plate .rg{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding-left:8px;margin-left:6px;
+  border-left:2px solid #c0c0c0;
+  line-height:1;
+}
+.rc-plate .rg .code{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.35rem;color:#0f1720;
+  margin-bottom:2px;
+}
+.rc-plate .rg .bottom-row{
+  display:flex;align-items:center;gap:3px;
+}
+.rc-plate .rg .rus{
+  font-size:.55rem;font-weight:800;letter-spacing:1.2px;
+  font-family:'Manrope',sans-serif;
+}
+.rc-plate .rg .flag-img{
+  width:15px;height:auto;
+  border:1px solid #999;border-radius:2px;
+}
+.rc-badge{
+  display:inline-block;padding:8px 20px;border-radius:20px;
+  font-weight:800;font-size:.9rem;margin:4px 0 14px;
+  background:var(--blue-light);color:var(--blue-dark);
+}
+.rc-badge.jackpot{background:linear-gradient(135deg,var(--gold),var(--orange));color:#fff;animation:pulseGold 1s infinite}
+.rc-badge.blat{background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff}
+.rc-badge.semi{background:linear-gradient(135deg,var(--blue),#0ea5e9);color:#fff}
+.rc-badge.spec{background:linear-gradient(135deg,var(--purple),#c026d3);color:#fff}
+.rc-badge.mirror{background:linear-gradient(135deg,var(--green),#0d9488);color:#fff}
+.rc-badge.common{background:var(--surface-2);color:var(--text-dim)}
+@keyframes pulseGold{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.rc-price{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;margin:8px 0 4px;color:var(--orange);line-height:1}
+.rc-bonus{color:var(--text-dim);font-size:.82rem;margin-bottom:20px;line-height:1.6;font-weight:600}
+.rc-btns{display:flex;flex-direction:column;gap:10px}
+.rc-btns .btn{width:100%}
+
+.section-title{
+  font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;
+  color:var(--text);margin:4px 0 16px;display:flex;align-items:center;gap:10px;
+}
+.section-title i{color:var(--blue);font-size:1.1rem}
+.section-title .count{color:var(--text-dim);font-size:.8rem;font-family:'Manrope';font-weight:700;letter-spacing:0}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+
+.car-card{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:18px;
+  padding:14px 12px;display:flex;flex-direction:column;align-items:center;
+  text-align:center;transition:.2s;position:relative;overflow:hidden;
+}
+.car-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.car-card .img-wrap{
+  width:100%;aspect-ratio:4/3;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;background:var(--surface-2);border-radius:12px;overflow:hidden;
+}
+.car-card .car-img{width:100%;height:100%;object-fit:cover}
+.car-card .car-emoji-fb{font-size:3rem;line-height:1}
+.car-card .car-name{font-weight:800;font-size:.9rem;margin-bottom:4px;line-height:1.2}
+.car-card .car-rar{
+  font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  padding:3px 10px;border-radius:20px;margin-bottom:8px;
+}
+.r-common{border-color:#cbd5e1} .t-common{color:#64748b;background:#f1f5f9}
+.r-rare{border-color:#93c5fd} .t-rare{color:#1d4ed8;background:#dbeafe}
+.r-epic{border-color:#c4b5fd} .t-epic{color:#6d28d9;background:#ede9fe}
+.r-legend{border-color:#fdba74} .t-legend{color:#c2410c;background:#ffedd5}
+.r-myth{border-color:#fca5a5} .t-myth{color:#b91c1c;background:#fee2e2}
+.car-price{font-weight:800;color:var(--orange-dark);font-size:.9rem;margin-top:auto}
+
+.mounted-plate{
+  margin-top:9px;background:#fff;border:2px solid #1b2430;border-radius:6px;
+  padding:3px 7px;font-family:'Bebas Neue',sans-serif;
+  font-size:.9rem;color:#0f1720;letter-spacing:1px;display:inline-block;
+}
+.car-actions{display:flex;gap:6px;margin-top:10px;width:100%}
+.car-actions .btn{flex:1;padding:8px 6px;font-size:.72rem;border-radius:9px}
+.unequip{
+  position:absolute;top:8px;right:8px;background:var(--red);border:none;color:#fff;
+  width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.7rem;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(220,38,38,.4);
+}
+.sell-car{
+  position:absolute;top:8px;left:8px;background:var(--green);border:none;color:#fff;
+  width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.7rem;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(22,163,74,.4);
+}
+.sell-car:hover{background:#15803d}
+
+.num-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.num-card{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:14px;padding:12px 10px;text-align:center;
+  cursor:grab;transition:.18s;position:relative;
+}
+.num-card:active{cursor:grabbing}
+.num-card:hover{transform:translateY(-3px);border-color:var(--blue);box-shadow:var(--shadow)}
+.num-card.dragging{opacity:.4}
+.num-card .mini-plate{
+  background:#fff;border:2px solid #1b2430;border-radius:6px;
+  padding:5px 4px;font-family:'Bebas Neue',sans-serif;
+  color:#0f1720;font-size:1.1rem;letter-spacing:1px;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:center;gap:2px;
+}
+.num-card .mini-plate .rg{font-size:.85rem;border-left:1.5px solid #c0c0c0;padding-left:4px;margin-left:4px}
+.num-card .nprice{color:var(--orange-dark);font-weight:800;font-size:.9rem}
+.num-card .nmult{color:var(--text-dim);font-size:.68rem;margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.num-card .nsell{
+  position:absolute;top:7px;right:7px;background:var(--green);border:none;color:#fff;
+  width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.7rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.num-card .nmount{margin-top:7px;font-size:.66rem;color:var(--green);font-weight:800}
+.cat-badge{
+  display:inline-block;font-size:.58rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.8px;padding:2px 8px;border-radius:20px;margin-top:3px;
+}
+
+.empty-note{text-align:center;color:var(--text-dim);padding:40px 14px;font-size:.88rem;line-height:1.8;font-weight:600}
+.empty-note i{font-size:2.6rem;color:var(--blue);display:block;margin-bottom:12px;opacity:.6}
+
+.cases-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.case-card{
+  border-radius:20px;padding:22px 18px;text-align:center;cursor:pointer;
+  border:2px solid;transition:.2s;background:var(--surface);
+  position:relative;overflow:hidden;
+}
+.case-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.case-card .case-ico{font-size:3.4rem;margin-bottom:10px;display:block;line-height:1}
+.case-card h3{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;margin-bottom:6px;color:var(--text)}
+.case-card .cprice{font-weight:800;color:var(--orange-dark);font-size:1.15rem;margin:9px 0}
+.case-card .cpool{font-size:.72rem;color:var(--text-dim);line-height:1.6;font-weight:600}
+.case-card .crar{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;margin-top:10px;display:inline-block;padding:3px 10px;border-radius:20px}
+.case-card.locked{opacity:.55;filter:grayscale(.5)}
+
+.roulette-overlay{
+  position:fixed;inset:0;z-index:250;display:none;
+  flex-direction:column;align-items:center;justify-content:center;padding:16px;
+  background:rgba(15,23,42,.75);backdrop-filter:blur(8px);
+}
+.roulette-overlay.show{display:flex}
+.roulette-wrap{width:100%;max-width:820px;text-align:center}
+.roulette-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#fff;margin-bottom:18px;letter-spacing:1px}
+.roulette-viewport{position:relative;overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.roulette-viewport::before,.roulette-viewport::after{
+  content:'';position:absolute;top:0;bottom:0;width:70px;z-index:5;pointer-events:none;
+}
+.roulette-viewport::before{left:0;background:linear-gradient(90deg,#fff,transparent)}
+.roulette-viewport::after{right:0;background:linear-gradient(-90deg,#fff,transparent)}
+.roulette-marker{
+  position:absolute;left:50%;top:0;bottom:0;width:3px;z-index:6;
+  background:linear-gradient(180deg,var(--orange),var(--blue),var(--orange));
+  transform:translateX(-50%);box-shadow:0 0 16px var(--orange);
+}
+.roulette-track{display:flex;gap:10px;padding:18px 0;will-change:transform}
+.rc-car{flex:0 0 150px;border-radius:14px;padding:12px 8px;text-align:center;background:var(--surface);border:2px solid}
+.rc-car .img-wrap{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;margin-bottom:8px;background:var(--surface-2);border-radius:10px;overflow:hidden}
+.rc-car .img-wrap img{width:100%;height:100%;object-fit:cover}
+.rc-car .e{font-size:2.4rem;line-height:1}
+.rc-car .n{font-size:.72rem;font-weight:800;line-height:1.3;margin-bottom:4px}
+.rc-car .r{font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;padding:2px 8px;border-radius:20px;display:inline-block}
+.roulette-btns{margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.roulette-btns .btn{min-width:200px}
+
+.shop-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{
+  background:var(--surface);border:1.5px solid var(--border);color:var(--text-dim);
+  border-radius:20px;padding:8px 16px;cursor:pointer;font-weight:700;
+  font-size:.8rem;font-family:inherit;transition:.18s;
+}
+.filter-btn:hover{border-color:var(--blue);color:var(--blue)}
+.filter-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+#toasts{position:fixed;top:80px;right:14px;z-index:400;display:flex;flex-direction:column;gap:9px;pointer-events:none}
+.toast{
+  background:var(--surface);border-left:4px solid var(--blue);border-radius:12px;
+  padding:12px 18px;font-size:.85rem;font-weight:700;color:var(--text);
+  box-shadow:var(--shadow-lg);animation:slideIn .3s ease;max-width:300px;
+}
+.toast.good{border-left-color:var(--green)}
+.toast.bad{border-left-color:var(--red)}
+.toast.gold{border-left-color:var(--gold)}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:300}
+.conf{position:absolute;width:10px;height:14px;opacity:.95;animation:confFall linear forwards}
+@keyframes confFall{
+  0%{transform:translateY(-30px) rotate(0deg);opacity:1}
+  100%{transform:translateY(105vh) rotate(720deg);opacity:0}
+}
+
+.modal{position:fixed;inset:0;z-index:280;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55);backdrop-filter:blur(6px)}
+.modal.show{display:flex}
+.modal-box{
+  background:var(--surface);border-radius:22px;padding:26px 22px;
+  max-width:380px;width:100%;text-align:center;
+  box-shadow:var(--shadow-lg);animation:popIn .3s ease;
+}
+.modal-box h3{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;color:var(--text);margin-bottom:10px}
+.modal-box p{color:var(--text-dim);font-size:.88rem;margin-bottom:18px;line-height:1.6;font-weight:600}
+.modal-box .btn{width:100%;margin-bottom:9px}
+
+.mobile-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:70;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);display:none;
+  justify-content:space-around;padding:8px 4px;
+  box-shadow:0 -4px 20px rgba(15,23,42,.06);
+}
+.mobile-nav button{
+  background:none;border:none;color:var(--text-dim);
+  font-size:.66rem;font-weight:800;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;padding:6px 12px;border-radius:11px;transition:.2s;
+}
+.mobile-nav button i{font-size:1.2rem}
+.mobile-nav button.active{color:var(--blue);background:var(--blue-light)}
+
+@media(max-width:820px){
+  .mobile-nav{display:flex}
+  .navbtns{display:none}
+  .brand{font-size:1.35rem}
+  main{padding-bottom:92px}
+  .machine{padding:28px 16px 24px}
+  .machine h2{font-size:1.7rem}
+  .reel{width:52px;height:76px}
+  .reel .strip .sym{height:76px;font-size:2.5rem}
+  .plate{padding:9px 8px}
+  .plate .region{min-width:44px;padding:0 5px 3px}
+  .plate .region .code{font-size:1.25rem}
+  .plate .region .rus{font-size:.55rem}
+  .plate .region .flag-img{width:17px}
+  .balance{padding:7px 13px;font-size:.9rem}
+  .rc-plate .ch{font-size:1.6rem;min-width:26px}
+  .rc-plate .rg .flag-img{width:13px}
+  .rc-plate .rg .code{font-size:1.1rem}
+}
+@media(max-width:420px){
+  .reel{width:44px;height:64px}
+  .reel .strip .sym{height:64px;font-size:2.1rem}
+  .plate{padding:8px 6px;gap:2px}
+  .plate .region{padding:0 4px 3px;margin-left:4px;min-width:38px}
+  .plate .region .code{font-size:1.05rem}
+  .plate .region .rus{font-size:.5rem;letter-spacing:1px}
+  .plate .region .flag-img{width:14px}
+  .rc-car{flex:0 0 124px}
+  .roulette-btns .btn{min-width:150px;font-size:.85rem;padding:12px 18px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>АВТОНОМЕРА</div>
+    <div class="balance"><i class="fa-solid fa-coins"></i><span id="balance">1 000</span> ₽</div>
+    <div class="navbtns">
+      <button class="nav-btn active" data-view="spin"><i class="fa-solid fa-dice"></i>Крутить</button>
+      <button class="nav-btn" data-view="garage"><i class="fa-solid fa-warehouse"></i>Гараж</button>
+      <button class="nav-btn" data-view="shop"><i class="fa-solid fa-store"></i>Магазин</button>
+      <button class="nav-btn" data-view="cases"><i class="fa-solid fa-box-open"></i>Кейсы</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="view active" id="view-spin">
+    <div class="machine">
+      <h2>ВЫБИВАНИЕ НОМЕРА</h2>
+      <div class="sub">Зеркалки, блат, полублат, спецсерии — чем круче, тем дороже</div>
+
+      <div class="plate-wrap"><div class="plate" id="mainPlate"></div></div>
+
+      <button class="btn btn-main" id="spinBtn"><i class="fa-solid fa-hand-fist"></i> ВЫБИТЬ НОМЕР</button>
+
+      <div class="levelbar">
+        <span class="level-chip">УР. <span id="lvl">1</span></span>
+        <span>Опыт</span>
+        <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+        <span id="xpText">0/5</span>
+        <span style="color:var(--text-dim)">| Выбито: <b style="color:var(--text)" id="totalSpins">0</b></span>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:26px"><i class="fa-solid fa-clock-rotate-left"></i> Последние выбитые</div>
+    <div class="grid num-grid" id="recentList"></div>
+  </section>
+
+  <section class="view" id="view-garage">
+    <div class="section-title"><i class="fa-solid fa-warehouse"></i> Мой гараж <span class="count" id="garageCount"></span></div>
+    <div class="grid" id="garageGrid"></div>
+
+    <div class="section-title" style="margin-top:30px">
+      <i class="fa-solid fa-id-card"></i> Коллекция номеров
+      <span class="count">— перетащи номер на машину</span>
+    </div>
+    <div class="grid num-grid" id="collectionGrid"></div>
+  </section>
+
+  <section class="view" id="view-shop">
+    <div class="section-title"><i class="fa-solid fa-store"></i> Магазин автомобилей</div>
+    <div class="shop-filters" id="shopFilters">
+      <button class="filter-btn active" data-filter="all">Все</button>
+      <button class="filter-btn" data-filter="common">Обычные</button>
+      <button class="filter-btn" data-filter="rare">Редкие</button>
+      <button class="filter-btn" data-filter="epic">Эпические</button>
+      <button class="filter-btn" data-filter="legend">Легендарные</button>
+      <button class="filter-btn" data-filter="myth">Мифические</button>
+    </div>
+    <div class="grid" id="shopGrid"></div>
+  </section>
+
+  <section class="view" id="view-cases">
+    <div class="section-title"><i class="fa-solid fa-box-open"></i> Кейсы с автомобилями</div>
+    <div class="cases-grid" id="casesGrid"></div>
+  </section>
+</main>
+
+<nav class="mobile-nav">
+  <button class="active" data-view="spin"><i class="fa-solid fa-dice"></i>Крутить</button>
+  <button data-view="garage"><i class="fa-solid fa-warehouse"></i>Гараж</button>
+  <button data-view="shop"><i class="fa-solid fa-store"></i>Магазин</button>
+  <button data-view="cases"><i class="fa-solid fa-box-open"></i>Кейсы</button>
+</nav>
+
+<div class="result-card" id="resultCard">
+  <div class="rc-inner">
+    <div class="rc-plate" id="rcPlate"></div>
+    <div class="rc-badge" id="rcBadge">x1</div>
+    <div class="rc-price" id="rcPrice">1 000 ₽</div>
+    <div class="rc-bonus" id="rcBonus"></div>
+    <div class="rc-btns">
+      <button class="btn btn-orange" id="rcSell"><i class="fa-solid fa-sack-dollar"></i> Продать</button>
+      <button class="btn btn-ghost" id="rcKeep"><i class="fa-solid fa-bookmark"></i> Оставить в коллекцию</button>
+    </div>
+  </div>
+</div>
+
+<div class="roulette-overlay" id="roulette">
+  <div class="roulette-wrap">
+    <div class="roulette-title" id="rouletteTitle">Открытие кейса...</div>
+    <div class="roulette-viewport">
+      <div class="roulette-marker"></div>
+      <div class="roulette-track" id="rouletteTrack"></div>
+    </div>
+    <div class="roulette-btns" id="rouletteBtns" style="display:none">
+      <button class="btn btn-green" id="rouletteSell"><i class="fa-solid fa-sack-dollar"></i> Продать</button>
+      <button class="btn btn-orange" id="rouletteKeep"><i class="fa-solid fa-warehouse"></i> Забрать в гараж</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="confirmModal">
+  <div class="modal-box">
+    <h3 id="cmTitle">Подтверждение</h3>
+    <p id="cmText"></p>
+    <button class="btn btn-orange" id="cmYes">Да</button>
+    <button class="btn btn-ghost" id="cmNo">Отмена</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+'use strict';
+
+/* ============ КОНСТАНТЫ ============ */
+const LETTERS = ['А','В','Е','К','М','Н','О','Р','С','Т','У','Х'];
+const REGIONS = ['77','99','97','177','199','197','777','799','01','02','23','50','66','116'];
+const SAVE_KEY = 'nomber_ok_v1';
+const BLAT_LETTERS = ['АМР','ЕКХ','ООО','МММ','ХХХ','ААА','ККК','РРР','ЕЕЕ','ССС'];
+
+/* ============ СОСТОЯНИЕ ============ */
+let state = {
+  balance: 1000,
+  level: 1,
+  xp: 0,
+  totalSpins: 0,
+  collection: [],
+  garage: []
+};
+
+/* ============ АВТОМОБИЛИ ============ */
+const CARS = {
+  junk: {
+    id:'junk', name:'Помойка', price:5000, icon:'🗑️', color:'#94a3b8',
+    cars:[
+      { id:'vaz2107', name:'ВАЗ 2107', img:'cars/vaz2107.png', emoji:'🚗', rarity:'common', weight:40, shopPrice:3500 },
+      { id:'oka',    name:'Ока',      img:'cars/oka.png',    emoji:'🚙', rarity:'common', weight:30, shopPrice:2500 },
+      { id:'matiz',  name:'Матиз',    img:'cars/matiz.png',  emoji:'🚕', rarity:'rare',   weight:20, shopPrice:9000 },
+      
+    ]
+  },
+  yard: {
+    id:'yard', name:'Двор', price:50000, icon:'🏘️', color:'#3b82f6',
+    cars:[
+      { id:'e36',    name:'BMW E36',        img:'cars/e36.png',   emoji:'🏎️', rarity:'rare',   weight:35, shopPrice:45000 },
+      { id:'w124',   name:'Mercedes W124',  img:'cars/w124.png',  emoji:'🚙', rarity:'rare',   weight:30, shopPrice:42000 },
+      { id:'civic',  name:'Honda Civic',    img:'cars/civic.png', emoji:'🚗', rarity:'epic',   weight:22, shopPrice:110000 },
+      { id:'mark2',  name:'Toyota Mark II', img:'cars/mark2.png', emoji:'🏎️', rarity:'epic',   weight:13, shopPrice:130000 }
+    ]
+  },
+  business: {
+    id:'business', name:'Бизнес', price:500000, icon:'💼', color:'#7c3aed',
+    cars:[
+      { id:'x5',      name:'BMW X5',           img:'cars/x5.png',      emoji:'🚙', rarity:'epic',   weight:35, shopPrice:450000 },
+      { id:'sclass',  name:'Mercedes S-Class', img:'cars/sclass.png',  emoji:'🚗', rarity:'epic',   weight:30, shopPrice:520000 },
+      { id:'a6',      name:'Audi A6',          img:'cars/a6.png',      emoji:'🚗', rarity:'legend', weight:22, shopPrice:900000 },
+      { id:'cayenne', name:'Porsche Cayenne',  img:'cars/cayenne.png', emoji:'🏎️', rarity:'legend', weight:13, shopPrice:1100000 }
+    ]
+  },
+  elite: {
+    id:'elite', name:'Элита', price:5000000, icon:'👑', color:'#dc2626',
+    cars:[
+      { id:'lambo',  name:'Lamborghini Huracan', img:'cars/lambo.png',   emoji:'🏎️', rarity:'legend', weight:35, shopPrice:4500000 },
+      { id:'ferrari',name:'Ferrari F8 Tributo',     img:'cars/ferrari.png', emoji:'🏎️', rarity:'legend', weight:30, shopPrice:5200000 },
+      { id:'rolls',  name:'Rolls-Royce Wraith', img:'cars/rolls.png',   emoji:'🚙', rarity:'myth',   weight:22, shopPrice:9000000 },
+      { id:'bugatti',name:'Bugatti Veyron',     img:'cars/bugatti.png', emoji:'🏎️', rarity:'myth',   weight:13, shopPrice:12000000 }
+    ]
+  }
+};
+
+const RARITY_RU = { common:'Обычная', rare:'Редкая', epic:'Эпическая', legend:'Легендарная', myth:'Мифическая' };
+const RARITY_CLASS = { common:'r-common', rare:'r-rare', epic:'r-epic', legend:'r-legend', myth:'r-myth' };
+const RARITY_TEXT = { common:'t-common', rare:'t-rare', epic:'t-epic', legend:'t-legend', myth:'t-myth' };
+
+/* ============ КАТЕГОРИИ НОМЕРОВ ============ */
+const CATEGORY = {
+  common:  { ru:'Обычный',     cls:'common',  min:800,   max:3000 },
+  mirror:  { ru:'Зеркалка',    cls:'mirror',  min:8000,  max:45000 },
+  semi:    { ru:'Полублат',    cls:'semi',    min:15000, max:90000 },
+  spec:    { ru:'Спецсерия',   cls:'spec',    min:30000, max:250000 },
+  blat:    { ru:'Блат',        cls:'blat',    min:150000,max:1500000 },
+  jackpot: { ru:'ДЖЕКПОТ',     cls:'jackpot', min:1000000,max:5000000 }
+};
+
+/* ============ АУДИО ============ */
+let audioCtx = null;
+function initAudio(){
+  if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function beep(freq,dur,type='square',vol=0.05){
+  if(!audioCtx) return;
+  try{
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+const sfxTick = () => beep(880,0.03,'square',0.03);
+const sfxStop = () => beep(1200,0.09,'triangle',0.06);
+const sfxWin = () => [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.15,'triangle',0.06),i*70));
+const sfxJackpot = () => [523,659,784,1047,1319,1568].forEach((f,i)=>setTimeout(()=>beep(f,0.2,'sawtooth',0.05),i*85));
+const sfxBuy = () => { beep(440,0.06,'square',0.05); setTimeout(()=>beep(660,0.1,'square',0.05),70); };
+const sfxError = () => beep(180,0.18,'sawtooth',0.05);
+
+/* ============ УТИЛИТЫ ============ */
+const $ = id => document.getElementById(id);
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const fmt = n => Math.floor(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const now = () => Date.now();
+
+/* ============ СОХРАНЕНИЕ ============ */
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      state = Object.assign(state, s);
+      if(!state.garage) state.garage = [];
+      if(!state.collection) state.collection = [];
+    }
+  }catch(e){}
+}
+
+/* ============ ГЕНЕРАЦИЯ ============ */
+const randomLetter = () => pick(LETTERS);
+const randomDigit = () => String(rand(0,9));
+
+function generatePlate(){
+  return {
+    l1: randomLetter(),
+    d1: randomDigit(), d2: randomDigit(), d3: randomDigit(),
+    l2: randomLetter(), l3: randomLetter(),
+    region: pick(REGIONS)
+  };
+}
+const plateToString = p => p.l1 + p.d1 + p.d2 + p.d3 + p.l2 + p.l3 + ' ' + p.region;
+
+const FLAG_RU = `<svg class="flag-img" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+  <rect width="30" height="6.67" fill="#fff"/>
+  <rect y="6.67" width="30" height="6.67" fill="#0039a6"/>
+  <rect y="13.33" width="30" height="6.67" fill="#d52b1e"/>
+</svg>`;
+
+/* ============ КАТЕГОРИЗАЦИЯ ============ */
+function isMirrorDigits(d1, d2, d3){ return d1 === d3; }
+function isMirrorLetters(l1, l2, l3){ return l1 === l3; }
+
+function categorize(p){
+  const digits = p.d1 + p.d2 + p.d3;
+  const letters = p.l1 + p.l2 + p.l3;
+  const chars = [p.l1, p.d1, p.d2, p.d3, p.l2, p.l3];
+  const freq = {};
+  chars.forEach(c => freq[c] = (freq[c]||0)+1);
+  let maxCount = 1;
+  for(const c in freq) maxCount = Math.max(maxCount, freq[c]);
+
+  const allSameChars   = chars.every(c => c === chars[0]);
+  const allSameDigits  = p.d1 === p.d2 && p.d2 === p.d3;
+  const allSameLetters = p.l1 === p.l2 && p.l2 === p.l3;
+
+  if(allSameChars) return { cat:'jackpot', reason:'💎 Все 6 символов одинаковые!' };
+  if(allSameDigits && allSameLetters) return { cat:'jackpot', reason:'💎 Совпали цифры и буквы!' };
+
+  const isBlatLetters = BLAT_LETTERS.includes(letters);
+  const niceDigits = ['001','007','100','666','777','888','999','123','321'];
+  const isNiceDigits = niceDigits.includes(digits);
+
+  if(isBlatLetters) return { cat:'blat', reason:'👑 Блатная серия «' + letters + '»' };
+  if(allSameDigits && (p.d1 === '7' || p.d1 === '8' || p.d1 === '9')) {
+    return { cat:'blat', reason:'👑 Блат: ' + digits + ' на премиум-цифрах' };
+  }
+  if(allSameDigits) return { cat:'spec', reason:'🔷 Все цифры одинаковые: ' + digits };
+  if(allSameLetters) return { cat:'spec', reason:'🔷 Спецсерия: «' + letters + '»' };
+  if(maxCount >= 4) return { cat:'spec', reason:'🔷 ' + maxCount + ' одинаковых символов в номере' };
+  if(isNiceDigits) return { cat:'semi', reason:'🔹 Полублат: красивые цифры «' + digits + '»' };
+  if(maxCount === 3) return { cat:'semi', reason:'🔹 Три одинаковых символа' };
+  if(isMirrorDigits(p.d1,p.d2,p.d3) && isMirrorLetters(p.l1,p.l2,p.l3)) {
+    return { cat:'mirror', reason:'🪞 Зеркальные цифры и буквы' };
+  }
+  if(isMirrorDigits(p.d1,p.d2,p.d3)) {
+    return { cat:'mirror', reason:'🪞 Зеркальные цифры: ' + digits };
+  }
+  if(isMirrorLetters(p.l1,p.l2,p.l3)) {
+    return { cat:'mirror', reason:'🪞 Зеркальные буквы: «' + letters + '»' };
+  }
+  if(maxCount === 2) return { cat:'common', reason:'Два одинаковых символа' };
+  return { cat:'common', reason:'Обычный номер' };
+}
+
+function evaluatePlate(p){
+  const catInfo = categorize(p);
+  const cat = catInfo.cat;
+  const catDef = CATEGORY[cat];
+
+  const chars = [p.l1, p.d1, p.d2, p.d3, p.l2, p.l3];
+  const freq = {};
+  chars.forEach(c => freq[c] = (freq[c]||0)+1);
+  let maxCount = 1;
+  for(const c in freq) maxCount = Math.max(maxCount, freq[c]);
+
+  let weight = 0;
+  switch(cat){
+    case 'common': weight = (maxCount - 1) / 1; break;
+    case 'mirror':
+      weight = 0;
+      if(isMirrorDigits(p.d1,p.d2,p.d3)) weight += 0.4;
+      if(isMirrorLetters(p.l1,p.l2,p.l3)) weight += 0.4;
+      if(maxCount >= 2) weight += 0.2;
+      weight = Math.min(1, weight);
+      break;
+    case 'semi':
+      weight = 0.3;
+      if(['001','007','100','666','777','888','999','123','321'].includes(p.d1+p.d2+p.d3)) weight += 0.3;
+      if(maxCount >= 3) weight += 0.3;
+      weight = Math.min(1, weight);
+      break;
+    case 'spec':
+      weight = 0.4;
+      if(maxCount >= 4) weight += 0.3;
+      if(maxCount >= 5) weight += 0.3;
+      weight = Math.min(1, weight);
+      break;
+    case 'blat':
+      weight = 0.5;
+      const digits = p.d1 + p.d2 + p.d3;
+      if(['777','888','999'].includes(digits)) weight += 0.3;
+      if(maxCount >= 4) weight += 0.2;
+      weight = Math.min(1, weight);
+      break;
+    case 'jackpot': weight = 1; break;
+  }
+
+  const price = Math.round(catDef.min + (catDef.max - catDef.min) * weight);
+  return {
+    plate:p, string:plateToString(p),
+    category:cat, categoryDef:catDef,
+    categoryRu:catDef.ru, categoryCls:catDef.cls,
+    reason:catInfo.reason,
+    price, weight,
+    isJackpot:cat === 'jackpot'
+  };
+}
+
+/* ============ ЭФФЕКТЫ ============ */
+function toast(msg, type=''){
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = msg;
+  $('toasts').appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 3000);
+}
+function shakeScreen(){
+  document.body.classList.add('shake');
+  setTimeout(()=>document.body.classList.remove('shake'), 450);
+}
+function spawnConfetti(count=60){
+  const canvas = $('confetti');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = ['#f97316','#2563eb','#16a34a','#eab308','#dc2626','#7c3aed'];
+  for(let i=0;i<count;i++){
+    const c = document.createElement('div');
+    c.className = 'conf';
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.background = pick(colors);
+    c.style.animationDuration = (1.4 + Math.random()*1.6) + 's';
+    c.style.animationDelay = (Math.random()*0.3) + 's';
+    canvas.appendChild(c);
+    setTimeout(()=>c.remove(), 3200);
+  }
+}
+
+/* ============ РЕНДЕР ПЛАСТИНЫ ============ */
+function renderPlate(p, container){
+  container.innerHTML = '';
+  const chars = [p.l1, p.d1, p.d2, p.d3, p.l2, p.l3];
+  chars.forEach((ch, i) => {
+    const reel = document.createElement('div');
+    reel.className = 'reel';
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    const alphabet = (i>=1 && i<=3) ? '0123456789' : LETTERS.join('');
+    for(let k=0;k<10;k++){
+      const sym = document.createElement('div');
+      sym.className = 'sym';
+      sym.textContent = alphabet[rand(0, alphabet.length-1)];
+      strip.appendChild(sym);
+    }
+    const finalSym = document.createElement('div');
+    finalSym.className = 'sym';
+    finalSym.textContent = ch;
+    strip.appendChild(finalSym);
+    reel.appendChild(strip);
+    container.appendChild(reel);
+  });
+  const reg = document.createElement('div');
+  reg.className = 'region';
+  reg.innerHTML = `
+    <div class="code">${p.region}</div>
+    <div class="bottom-row">
+      <span class="rus">RUS</span>
+      ${FLAG_RU}
+    </div>
+  `;
+  container.appendChild(reg);
+}
+
+/* ============ АНИМАЦИЯ ============ */
+function animateSpin(plate, onDone){
+  const plateEl = $('mainPlate');
+  renderPlate(plate, plateEl);
+  const reels = plateEl.querySelectorAll('.reel');
+  const TOTAL = 6;
+  const startDelay = 60;
+  const spinTime = 500;
+  let finished = 0;
+
+  reels.forEach((reel, i) => {
+    const strip = reel.querySelector('.strip');
+    const totalItems = strip.children.length;
+    const itemH = reel.clientHeight;
+    const finalIndex = totalItems - 1;
+    const startIndex = rand(0, totalItems - 1);
+    strip.style.transform = 'translateY(' + (-startIndex * itemH) + 'px)';
+    void strip.offsetHeight;
+
+    setTimeout(() => {
+      reel.classList.add('spinning');
+      const start = performance.now();
+      const from = startIndex * itemH;
+      const to = finalIndex * itemH;
+      const extraLoops = 4 + i;
+
+      function frame(t){
+        const elapsed = t - start;
+        const prog = Math.min(elapsed / spinTime, 1);
+        const ease = 1 - Math.pow(1 - prog, 3);
+        const extra = (1 - ease) * extraLoops * totalItems * itemH;
+        const y = from + (to - from) * ease - extra;
+        strip.style.transform = 'translateY(' + (-y) + 'px)';
+        if(Math.random() < 0.35) sfxTick();
+        if(prog < 1){ requestAnimationFrame(frame); }
+        else {
+          strip.style.transform = 'translateY(' + (-to) + 'px)';
+          reel.classList.remove('spinning');
+          reel.classList.add('tick','stop-flash');
+          sfxStop();
+          setTimeout(()=>reel.classList.remove('tick','stop-flash'), 320);
+          finished++;
+          if(finished === TOTAL && onDone) onDone();
+        }
+      }
+      requestAnimationFrame(frame);
+    }, i * startDelay);
+  });
+}
+
+/* ============ ГЛАВНАЯ ЛОГИКА ============ */
+let spinning = false;
+let pendingResult = null;
+let recentResults = [];
+
+function doSpin(){
+  if(spinning) return;
+  initAudio();
+  spinning = true;
+  $('spinBtn').disabled = true;
+
+  const plate = generatePlate();
+  state.totalSpins++;
+  addXp(1);
+
+  animateSpin(plate, () => {
+    spinning = false;
+    $('spinBtn').disabled = false;
+    const result = evaluatePlate(plate);
+    if(result.isJackpot){
+      shakeScreen(); spawnConfetti(120); sfxJackpot();
+      $('mainPlate').classList.add('jackpot');
+      setTimeout(()=>$('mainPlate').classList.remove('jackpot'), 2500);
+    } else if(result.price >= 100000){
+      spawnConfetti(50); sfxWin();
+    }
+    showResultCard(result);
+    save();
+  });
+}
+
+function xpNeeded(level){ return 5 + (level-1)*3; }
+function addXp(n){
+  state.xp += n;
+  while(state.xp >= xpNeeded(state.level)){
+    state.xp -= xpNeeded(state.level);
+    state.level++;
+    toast('🎉 Новый уровень: ' + state.level + '!', 'gold');
+    sfxWin();
+  }
+  updateLevelUI();
+}
+function updateLevelUI(){
+  $('lvl').textContent = state.level;
+  const need = xpNeeded(state.level);
+  $('xpFill').style.width = ((state.xp/need)*100) + '%';
+  $('xpText').textContent = state.xp + '/' + need;
+  $('totalSpins').textContent = state.totalSpins;
+}
+
+function showResultCard(result){
+  pendingResult = result;
+  const rc = $('rcPlate');
+  rc.innerHTML = '';
+  const chars = [result.plate.l1, result.plate.d1, result.plate.d2, result.plate.d3, result.plate.l2, result.plate.l3];
+  chars.forEach((c)=>{
+    const d = document.createElement('div'); d.className='ch'; d.textContent=c; rc.appendChild(d);
+  });
+  const rg = document.createElement('div'); rg.className='rg';
+  rg.innerHTML = `
+    <div class="code">${result.plate.region}</div>
+    <div class="bottom-row">
+      <span class="rus">RUS</span>
+      ${FLAG_RU}
+    </div>
+  `;
+  rc.appendChild(rg);
+
+  const badge = $('rcBadge');
+  badge.className = 'rc-badge ' + result.categoryCls;
+  badge.textContent = result.categoryRu + ' · ' + result.reason;
+
+  $('rcPrice').textContent = fmt(result.price) + ' ₽';
+  $('rcBonus').innerHTML = 'Категория: <b>' + result.categoryRu + '</b>';
+  $('rcSell').innerHTML = '<i class="fa-solid fa-sack-dollar"></i> Продать за ' + fmt(result.price) + ' ₽';
+  $('resultCard').classList.add('show');
+}
+function closeResultCard(){ $('resultCard').classList.remove('show'); pendingResult = null; }
+
+function sellCurrent(){
+  if(!pendingResult) return;
+  state.balance += pendingResult.price;
+  recentResults.push({...pendingResult, sold:true});
+  if(recentResults.length > 12) recentResults.shift();
+  toast('💰 Продано за ' + fmt(pendingResult.price) + ' ₽', 'good');
+  sfxBuy();
+  closeResultCard();
+  updateBalance(); renderRecent(); save();
+}
+
+function keepCurrent(){
+  if(!pendingResult) return;
+  const item = {
+    id: 'p' + now() + '_' + Math.random().toString(36).slice(2,6),
+    plate: pendingResult.plate,
+    string: pendingResult.string,
+    price: pendingResult.price,
+    category: pendingResult.category,
+    categoryRu: pendingResult.categoryRu,
+    categoryCls: pendingResult.categoryCls,
+    isJackpot: pendingResult.isJackpot
+  };
+  state.collection.push(item);
+  recentResults.push({...pendingResult, kept:true});
+  if(recentResults.length > 12) recentResults.shift();
+  if(state.collection.length > 200) state.collection.shift();
+  toast('📌 Номер сохранён', 'gold');
+  closeResultCard();
+  renderCollection(); renderRecent(); save();
+}
+
+function updateBalance(){ $('balance').textContent = fmt(state.balance); }
+
+function renderRecent(){
+  const wrap = $('recentList');
+  wrap.innerHTML = '';
+  if(recentResults.length === 0){
+    wrap.innerHTML = '<div class="empty-note" style="grid-column:1/-1"><i class="fa-solid fa-dice"></i>Выбей первый номер, чтобы увидеть его здесь</div>';
+    return;
+  }
+  recentResults.slice(-6).reverse().forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'num-card';
+    const chars = [r.plate.l1,r.plate.d1,r.plate.d2,r.plate.d3,r.plate.l2,r.plate.l3];
+    card.innerHTML = `
+      <div class="mini-plate">${chars.map(c=>`<span>${c}</span>`).join('')}<span class="rg">${r.plate.region}</span></div>
+      <div class="nprice">${fmt(r.price)} ₽</div>
+      <div class="cat-badge" style="background:var(--surface-2);color:var(--text-dim)">${r.categoryRu||'—'}</div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+/* ============ КАРТОЧКА МАШИНЫ ============ */
+function carImageHTML(car, size='normal'){
+  const emojiClass = size === 'small' ? 'e' : 'car-emoji-fb';
+  return `<img src="${car.img}" alt="${car.name}" class="car-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="${emojiClass}" style="display:none">${car.emoji}</span>`;
+}
+
+function renderGarage(){
+  const grid = $('garageGrid');
+  grid.innerHTML = '';
+  $('garageCount').textContent = '— ' + state.garage.length + ' авто';
+
+  if(state.garage.length === 0){
+    grid.innerHTML = '<div class="empty-note" style="grid-column:1/-1"><i class="fa-solid fa-car-side"></i>Гараж пуст.<br>Купи машину в магазине или открой кейс!</div>';
+    return;
+  }
+
+  state.garage.forEach((g, idx) => {
+    const carDef = findCar(g.caseId, g.carId);
+    if(!carDef) return;
+    const mounted = g.plateId ? state.collection.find(p=>p.id===g.plateId) : null;
+    const slot = document.createElement('div');
+    slot.className = 'car-card ' + RARITY_CLASS[carDef.rarity];
+    slot.dataset.idx = idx;
+    slot.innerHTML = `
+      <button class="sell-car" title="Продать машину"><i class="fa-solid fa-dollar-sign"></i></button>
+      <div class="img-wrap">${carImageHTML(carDef, 'normal')}</div>
+      <div class="car-name">${carDef.name}</div>
+      <div class="car-rar ${RARITY_TEXT[carDef.rarity]}">${RARITY_RU[carDef.rarity]}</div>
+      ${mounted
+        ? `<div class="mounted-plate">${mounted.string}</div>
+           <button class="unequip" title="Снять номер"><i class="fa-solid fa-xmark"></i></button>`
+        : '<div style="font-size:.68rem;color:var(--text-dim);margin-top:6px;font-weight:600">Нет номера</div>'}
+    `;
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('dragover'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('dragover'));
+    slot.addEventListener('drop', e => {
+      e.preventDefault();
+      slot.classList.remove('dragover');
+      const plateId = e.dataTransfer.getData('text/plate-id');
+      if(plateId) mountPlate(idx, plateId);
+    });
+    const un = slot.querySelector('.unequip');
+    if(un) un.addEventListener('click', e => {
+      e.stopPropagation();
+      state.garage[idx].plateId = null;
+      toast('Номер снят с машины');
+      renderGarage(); renderCollection(); save();
+    });
+    slot.querySelector('.sell-car').addEventListener('click', e => {
+      e.stopPropagation();
+      const sellPrice = Math.round(carDef.shopPrice * 0.6);
+      showConfirm(
+        'Продать машину?',
+        `${carDef.name} будет продана за ${fmt(sellPrice)} ₽ (60% от магазина)`,
+        () => {
+          state.balance += sellPrice;
+          state.garage.splice(idx, 1);
+          toast('💰 ' + carDef.name + ' продана за ' + fmt(sellPrice) + ' ₽', 'good');
+          sfxBuy();
+          updateBalance(); renderGarage(); renderCollection(); save();
+        }
+      );
+    });
+    grid.appendChild(slot);
+  });
+}
+
+function findCar(caseId, carId){
+  const c = CARS[caseId];
+  if(!c) return null;
+  return c.cars.find(x=>x.id===carId);
+}
+
+function mountPlate(idx, plateId){
+  const plate = state.collection.find(p=>p.id===plateId);
+  if(!plate) return;
+  state.garage.forEach(g => { if(g.plateId === plateId) g.plateId = null; });
+  state.garage[idx].plateId = plateId;
+  toast('🔧 Номер ' + plate.string + ' установлен!', 'good');
+  sfxBuy();
+  renderGarage(); renderCollection(); save();
+}
+
+function renderCollection(){
+  const grid = $('collectionGrid');
+  grid.innerHTML = '';
+  if(state.collection.length === 0){
+    grid.innerHTML = '<div class="empty-note" style="grid-column:1/-1"><i class="fa-solid fa-id-card"></i>Коллекция пуста.<br>Выбивай номера и жми «Оставить»</div>';
+    return;
+  }
+  const sorted = [...state.collection].sort((a,b)=>b.price-a.price);
+  sorted.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'num-card';
+    card.draggable = true;
+    card.dataset.id = p.id;
+    const chars = [p.plate.l1,p.plate.d1,p.plate.d2,p.plate.d3,p.plate.l2,p.plate.l3];
+    const mountedOn = state.garage.findIndex(g=>g.plateId===p.id);
+    card.innerHTML = `
+      <button class="nsell" title="Продать"><i class="fa-solid fa-dollar-sign"></i></button>
+      <div class="mini-plate">${chars.map(c=>`<span>${c}</span>`).join('')}<span class="rg">${p.plate.region}</span></div>
+      <div class="nprice">${fmt(p.price)} ₽</div>
+      <div class="cat-badge" style="background:var(--surface-2);color:var(--text-dim)">${p.categoryRu||'—'}</div>
+      ${mountedOn>=0?`<div class="nmount"><i class="fa-solid fa-car"></i> на машине</div>`:''}
+    `;
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plate-id', String(p.id));
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.querySelector('.nsell').addEventListener('click', e => {
+      e.stopPropagation();
+      state.balance += p.price;
+      state.collection = state.collection.filter(x=>x.id!==p.id);
+      state.garage.forEach(g=>{ if(g.plateId===p.id) g.plateId=null; });
+      toast('💰 Номер продан за ' + fmt(p.price) + ' ₽', 'good');
+      sfxBuy();
+      updateBalance(); renderCollection(); renderGarage(); save();
+    });
+    grid.appendChild(card);
+  });
+}
+
+/* ============ МАГАЗИН ============ */
+let shopFilter = 'all';
+function renderShop(){
+  const grid = $('shopGrid');
+  grid.innerHTML = '';
+  const all = [];
+  Object.values(CARS).forEach(c => c.cars.forEach(car => all.push({...car, caseId:c.id})));
+  const filtered = shopFilter === 'all' ? all : all.filter(c => c.rarity === shopFilter);
+  filtered.sort((a,b)=>a.shopPrice - b.shopPrice);
+
+  filtered.forEach(car => {
+    const afford = state.balance >= car.shopPrice;
+    const card = document.createElement('div');
+    card.className = 'car-card ' + RARITY_CLASS[car.rarity];
+    card.innerHTML = `
+      <div class="img-wrap">${carImageHTML(car, 'normal')}</div>
+      <div class="car-name">${car.name}</div>
+      <div class="car-rar ${RARITY_TEXT[car.rarity]}">${RARITY_RU[car.rarity]}</div>
+      <div class="car-price">${fmt(car.shopPrice)} ₽</div>
+      <div class="car-actions">
+        <button class="btn ${afford?'btn-orange':'btn-ghost'}" ${afford?'':'disabled'}>
+          <i class="fa-solid fa-cart-shopping"></i> Купить
+        </button>
+      </div>
+    `;
+    if(afford){
+      card.querySelector('button').addEventListener('click', () => {
+        showConfirm(
+          'Купить машину?',
+          `${car.name} за ${fmt(car.shopPrice)} ₽`,
+          () => {
+            state.balance -= car.shopPrice;
+            state.garage.push({ caseId: car.caseId, carId: car.id, plateId: null });
+            toast('🚗 Куплено: ' + car.name, 'good');
+            sfxBuy();
+            updateBalance(); renderShop(); renderGarage(); save();
+          }
+        );
+      });
+    }
+    grid.appendChild(card);
+  });
+}
+
+/* ============ КЕЙСЫ ============ */
+function renderCases(){
+  const grid = $('casesGrid');
+  grid.innerHTML = '';
+  Object.values(CARS).forEach(c => {
+    const afford = state.balance >= c.price;
+    const card = document.createElement('div');
+    card.className = 'case-card ' + (afford ? '' : 'locked');
+    card.style.borderColor = c.color;
+    const topRarity = c.cars.reduce((best, x) => {
+      const order = { common:0, rare:1, epic:2, legend:3, myth:4 };
+      return order[x.rarity] > order[best] ? x.rarity : best;
+    }, 'common');
+    card.innerHTML = `
+      <span class="case-ico">${c.icon}</span>
+      <h3>${c.name}</h3>
+      <div class="cprice">${fmt(c.price)} ₽</div>
+      <div class="cpool">${c.cars.map(x=>x.name).join(' · ')}</div>
+      <span class="crar ${RARITY_TEXT[topRarity]}">${RARITY_RU[topRarity]}</span>
+    `;
+    card.addEventListener('click', () => openCase(c));
+    grid.appendChild(card);
+  });
+}
+
+/* ============ РУЛЕТКА ============ */
+let rouletteBusy = false;
+let rouletteWinCar = null;
+let rouletteCaseId = null;
+
+function openCase(c){
+  if(rouletteBusy) return;
+  if(state.balance < c.price){
+    toast('❌ Недостаточно денег! Нужно ' + fmt(c.price) + ' ₽', 'bad');
+    sfxError();
+    return;
+  }
+  initAudio();
+  state.balance -= c.price;
+  updateBalance(); save();
+
+  const winCar = weightedPick(c.cars);
+  rouletteWinCar = winCar;
+  rouletteCaseId = c.id;
+
+  const track = $('rouletteTrack');
+  track.innerHTML = '';
+  const ITEMS = 32;
+  const winIndex = 24;
+
+  for(let i=0;i<ITEMS;i++){
+    const car = (i === winIndex) ? winCar : weightedPick(c.cars);
+    const el = document.createElement('div');
+    el.className = 'rc-car ' + RARITY_CLASS[car.rarity];
+    el.innerHTML = `
+      <div class="img-wrap">${carImageHTML(car, 'small')}</div>
+      <div class="n">${car.name}</div>
+      <div class="r ${RARITY_TEXT[car.rarity]}">${RARITY_RU[car.rarity]}</div>
+    `;
+    track.appendChild(el);
+  }
+
+  $('rouletteTitle').textContent = 'Открытие: ' + c.name;
+  $('rouletteBtns').style.display = 'none';
+  $('roulette').classList.add('show');
+  rouletteBusy = true;
+
+  const itemW = 150 + 10;
+  const viewportW = document.querySelector('.roulette-viewport').clientWidth;
+  const targetCenter = winIndex * itemW + itemW/2;
+  const offset = viewportW/2 - targetCenter;
+  const duration = 2600;
+  const start = performance.now();
+
+  function frame(t){
+    const p = Math.min((t - start)/duration, 1);
+    const ease = 1 - Math.pow(1-p, 5);
+    const y = offset * ease;
+    track.style.transform = 'translateX(' + y + 'px)';
+    if(Math.random() < 0.2) beep(600 + Math.random()*400, 0.02, 'square', 0.02);
+    if(p < 1){ requestAnimationFrame(frame); }
+    else {
+      track.style.transform = 'translateX(' + offset + 'px)';
+      rouletteBusy = false;
+      sfxBuy();
+
+      if(winCar.rarity === 'myth' || winCar.rarity === 'legend'){
+        spawnConfetti(90); shakeScreen(); sfxJackpot();
+      } else if(winCar.rarity === 'epic'){
+        spawnConfetti(35); sfxWin();
+      }
+
+      const sellPrice = Math.round(winCar.shopPrice * 0.6);
+      $('rouletteSell').innerHTML = '<i class="fa-solid fa-sack-dollar"></i> Продать за ' + fmt(sellPrice) + ' ₽';
+      $('rouletteKeep').innerHTML = '<i class="fa-solid fa-warehouse"></i> Забрать в гараж';
+      $('rouletteTitle').textContent = '🎉 ' + winCar.name + ' — ' + RARITY_RU[winCar.rarity];
+      $('rouletteBtns').style.display = 'flex';
+
+      updateBalance();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+$('rouletteSell').addEventListener('click', () => {
+  if(!rouletteWinCar) return;
+  const sellPrice = Math.round(rouletteWinCar.shopPrice * 0.6);
+  state.balance += sellPrice;
+  toast('💰 ' + rouletteWinCar.name + ' продана за ' + fmt(sellPrice) + ' ₽', 'good');
+  sfxBuy();
+  updateBalance();
+  closeRoulette();
+  save();
+});
+
+$('rouletteKeep').addEventListener('click', () => {
+  if(!rouletteWinCar) return;
+  state.garage.push({ caseId: rouletteCaseId, carId: rouletteWinCar.id, plateId: null });
+  toast('🚗 ' + rouletteWinCar.name + ' в гараже', 'good');
+  sfxBuy();
+  renderGarage();
+  closeRoulette();
+  save();
+});
+
+function closeRoulette(){
+  $('roulette').classList.remove('show');
+  $('rouletteBtns').style.display = 'none';
+  rouletteWinCar = null;
+  rouletteCaseId = null;
+}
+
+function weightedPick(cars){
+  const total = cars.reduce((s,c)=>s+c.weight,0);
+  let r = Math.random()*total;
+  for(const c of cars){ r -= c.weight; if(r <= 0) return c; }
+  return cars[cars.length-1];
+}
+
+/* ============ МОДАЛКА ============ */
+let confirmCb = null;
+function showConfirm(title, text, cb){
+  $('cmTitle').textContent = title;
+  $('cmText').textContent = text;
+  confirmCb = cb;
+  $('confirmModal').classList.add('show');
+}
+$('cmYes').addEventListener('click', () => {
+  $('confirmModal').classList.remove('show');
+  if(confirmCb) confirmCb();
+  confirmCb = null;
+});
+$('cmNo').addEventListener('click', () => {
+  $('confirmModal').classList.remove('show');
+  confirmCb = null;
+});
+
+/* ============ НАВИГАЦИЯ ============ */
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const view = $('view-' + name);
+  if(view) view.classList.add('active');
+  document.querySelectorAll('.nav-btn, .mobile-nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === name);
+  });
+  if(name === 'garage'){ renderGarage(); renderCollection(); }
+  if(name === 'cases'){ renderCases(); }
+  if(name === 'shop'){ renderShop(); }
+  if(name === 'spin'){ renderRecent(); }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ============ ИНИЦИАЛИЗАЦИЯ ============ */
+function init(){
+  load();
+  updateBalance(); updateLevelUI(); renderRecent();
+
+  document.querySelectorAll('.nav-btn, .mobile-nav button').forEach(b => {
+    b.addEventListener('click', () => switchView(b.dataset.view));
+  });
+
+  document.querySelectorAll('#shopFilters .filter-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#shopFilters .filter-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      shopFilter = b.dataset.filter;
+      renderShop();
+    });
+  });
+
+  $('spinBtn').addEventListener('click', doSpin);
+  $('rcSell').addEventListener('click', sellCurrent);
+  $('rcKeep').addEventListener('click', keepCurrent);
+
+  document.body.addEventListener('click', initAudio, { once:true });
+
+  const stub = generatePlate();
+  renderPlate(stub, $('mainPlate'));
+  renderGarage(); renderCollection(); renderShop(); renderCases();
+
+  window.addEventListener('beforeunload', save);
+  console.log('%c🔢 АВТОНОМЕРА запущена', 'color:#2563eb;font-size:16px;font-weight:bold');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
